@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+</head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+        <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+            <center>
+                <table border="0">
+                    <tr>
+                        <th>
+                            <div class="ui small image">
+                                <a href="/"><img src="/logo.PNG"></a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="field">
+                                <input type="text" size="50" name="query" id="query" placeholder="Search...">
+                                <input type="hidden" name="page" id="page" value="1" />
+                            </div>
+                        </th>
+                        <th>
+                            <button class="ui button" type="submit">Search</button>
+                        </th>
+                    </tr>
+                </table>
+            </center>
+        </form>
+    </div>
+    <!-- 페이지 머릿글 부분 끝 -->
+
+    <!-- 페이지 내용 -->
+    <div class="ui middle aligned stackable container">
+        <center>
+            <table border="0">
+                <tr>
+                    <!-- 중간 왼쪽 메뉴 시작 -->
+                    <td valign="top" width="20%">
+                        <div class="ui vertical menu">
+                            <a class="item">
+                                <div style="line-height:1.4em" class="ui segment" id="loginArea">
+                                    <form action="/account/login" method="post" class="ui center aligned form" >
+                                        <div class="card">
+                                            <input type="text" name="loginID" id="loginID" placeholder="ID" required >
+                                            <input type="password" name="loginPW" id="loginPW" placeholder="Password" required >
+                                            
+                                            <p></p>
+    
+                                            <div class="extra content">
+                                                <button type="submit" class="fluid ui primary button" >로그인<i class="right floated id card outline icon" ></i></button>
+                                                <button type="button" class="fluid ui secondary button" onclick="location.href='/signup'"; >회원가입<i class="right floated id card icon"></i></button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </a>
+                            <div class="item">
+                                회원정보
+                                <div class="menu">
+                                    <a class="item" href="/account/info" >회원정보 변경</a>
+                                    <a class="item" href="/account/password" >비밀번호 변경</a>
+                                    <a class="item" href="/account/withdrawal" >회원탈퇴</a>
+                                </div>
+                            </div>
+                            <a class="item" href="/shipping">
+                                주문/배송 조회
+                            </a>
+                            <a class="item" href="/seller">
+                                판매자 메뉴
+                            </a>
+                        </div>
+                    </td>
+                    <!-- 중간 왼쪽 메뉴 끝 -->
+                    <td valign="top">
+                        <form name="uploadForm" method="post" action="/seller/register" enctype="multipart/form-data" onsubmit="return CheckUpload()">
+                            <table class="ui celled striped table">
+                                <input type="hidden" id="id" name="id" value="<%= rows[0].id %>">
+                                <thead>
+                                    <tr><th colspan="3">
+                                        상품 등록
+                                    </th>
+                                </tr></thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="collapsing"><center>
+                                            상품 이름
+                                        </center></td>
+                                        <td>
+                                            <div class="ui input"><input size="50" type="text" id="name" name="name" maxlength="30"></div>
+                                        </td>
+                                        <td>최대 30자 이내 (Max. 30 characters)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="collapsing"><center>
+                                            상품 가격
+                                        </center></td>
+                                        <td>
+                                            <div class="ui left icon input">
+                                                <i class="won icon"></i>
+                                                <input onkeydown="CheckNumber(this)" type="text" id="price" name="price" maxlength="7">
+                                            </div>
+                                        </td>
+                                        <td>최대 천 만원 미만 (Max. 10 million Won below)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><center>
+                                            상품 종류
+                                        </center></td>
+                                        <td>
+                                            <div class="field">
+                                                <select class="ui search dropdown" id="category" name="category">
+                                                    <option value="">종류 선택</option>
+                                                    <option value="fruit">과일(Fruit)</option>
+                                                    <option value="vegetable">채소(Vegetable)</option>
+                                                    <option value="beverage">음료(Beverage)</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                        <td>3가지 종류 중 선택 (Select one of them)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="collapsing"><center>
+                                            상품 설명
+                                            (선택사항)
+                                        </center></td>
+                                        <td>
+                                            <div class="ui form"><textarea id="description" name="description"></textarea></div>
+                                        </td>
+                                        <td class="right aligned"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="collapsing"><center>
+                                            상품 수량
+                                        </center></td>
+                                        <td>
+                                            <div class="ui input">
+                                                <input onkeydown="CheckNumber(this)" type="text" id="amount" name="amount" maxlength="5">
+                                            </div>
+                                        </td>
+                                        <td>최대 십 만개 미만 (Max. 100 Thousand below)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="collapsing"><center>
+                                            상품 이미지
+                                        </center></td>
+                                        <td>
+                                            <div class="ui input">
+                                                <input type="file" id="file" name="file" accept="image/*" >
+                                            </div>
+                                        </td>
+                                        <td>
+                                            최대 5MB 이하, 사진 파일만 가능<br />
+                                            (Max. 5MB, only for pictures)
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><center>
+                                            배송 방법
+                                        </center></td>
+                                        <td>
+                                            <div class="field">
+                                                <select class="ui search dropdown" id="shipping" name="shipping">
+                                                    <option value="">방법 선택</option>
+                                                    <option value="1">무료배송(Free Shipping)</option>
+                                                    <option value="0">2,500원</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                        <td>직접 배송은 무료배송에 해당</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button class="ui primary button">상품 등록</button>
+                        </form>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+    <!-- 페이지 내용 끝 -->
+
+    <!-- 사용되는 함수 정의 부분 -->
+    <script type="text/javascript">
+        // 코드 실제로 실행되는 부분
+
+        ShowLeftMenu(); // 로그인이 되어 있을 경우 다른 메뉴 부분을 출력하는 함수
+
+        function ShowLeftMenu() {
+            if(getCookie("id")) {
+                var innerHTML = "";
+
+                innerHTML += '<div class="content">';
+                innerHTML += '<div class="meta">';
+                innerHTML += '방문을 환영합니다!'
+                innerHTML += '</div>';
+                innerHTML += '</div>';
+                innerHTML += '<div class="header">';
+                innerHTML += '<b>' + getCookie("id") + '</b>';
+                innerHTML += '</div>';
+                innerHTML += '<p></p>';
+                innerHTML += '<div class="extra content">';
+                innerHTML += '<button class="fluid ui primary button" onclick="location.href=\'/account/info\'" >회원정보<i class="right floated id card outline icon" ></i></button>';
+                innerHTML += '<button class="fluid ui grey button" onclick="Logout()"; >로그아웃<i class="right floated sign out alternate icon"></i></button>';
+                innerHTML += '<button class="fluid ui green button" onclick="location.href=\'/basket\'" ;>장바구니<i class="right floated shopping basket icon"></i></button>';
+                innerHTML += '</div>';
+
+                document.getElementById("loginArea").innerHTML = innerHTML;
+            }
+        }
+
+        function getCookie(id) { // 페이지의 쿠키 정보를 확인하는 함수
+            var value = document.cookie.match('(^|;) ?' + id + '=([^;]*)(;|$)');
+            return value ? value[2] : null;
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.reload();
+        }
+
+        function CheckUpload() {
+            if(document.getElementById('name').value == "") {
+                alert("상품의 이름을 입력하십시오.");
+                return false;
+            }
+            else if(document.getElementById('price').value == "") {
+                alert("상품의 가격을 입력하십시오.");
+                return false;
+            }
+            else if(document.getElementById('category').value == "") {
+                alert("상품의 종류를 선택하십시오.");
+                return false;
+            }
+            else if(document.getElementById('amount').value == "") {
+                alert("상품의 수량을 입력하십시오.");
+                return false;
+            }
+            
+            var fileSize = 0;
+
+            if(navigator.appName == "Microsoft Internet Explorer") {
+                var oas = new ActiveXObject("Scripting.FileSystemObject");
+                fileSize = oas.getFile(document.uploadForm.file.value).size;
+            }
+            else
+                fileSize = document.uploadForm.file.files[0].size;
+
+            if(fileSize > 1048576 * 5) {
+                alert("파일 크기가 5MB를 초과합니다. 다른 이미지를 사용하시거나 크기를 줄여주세요.");
+                return false;
+            }
+
+            var str = document.getElementById("description").value;
+            str = str.replace(/(?:\r\n|\r|\n)/g, '<br/>');
+            document.getElementById("description").value = str;
+        }
+
+        function CheckNumber(obj) {
+            $(obj).keyup(function () {
+                $(this).val($(this).val().replace(/[^0-9]/g, ""));
+            }); 
+        }
+    </script>
+</body>
+</html>

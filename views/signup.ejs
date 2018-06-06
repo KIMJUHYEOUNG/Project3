@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+    <script type="text/javascript" src="https://semantic-ui.com/dist/semantic.min.js"></script>
+</head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+    <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+        <center>
+            <table border="0">
+                <tr>
+                    <th>
+                        <div class="ui small image">
+                            <a href="/"><img src="/logo.PNG"></a>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="field">
+                            <input type="text" size="50" name="query" id="query" placeholder="Search..." />
+                            <input type="hidden" name="page" id="page" value="1" />
+                        </div>
+                    </th>
+                    <th>
+                        <button class="ui button" type="submit">Search</button>
+                    </th>
+                </tr>
+            </table>
+        </center>
+    </form>
+    </div>
+    <!-- 페이지 머릿글 부분 끝 -->
+
+    <div class="ui middle aligned stackable container segment">
+        <h4 class="ui dividing header">회원가입</h4>
+        <div class="field">
+            <center>
+                <form method="POST" action="/signup" onsubmit="return Submit()">
+                    <table border="0">
+                        <tr>
+                            <td colspan="4">
+                                <label>필수 정보 입력</label>
+                                <div class="ui divider"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div id="idArea" class="ui input">
+                                    <input type="text" name="id" id="id" placeholder="아이디 입력" />
+                                </div> 
+                            </td>
+                            <td>
+                                <button type="button" id="idButtonArea" class="ui icon button" onclick="CheckID()">
+                                    <i id="buttonArea" class="toggle off icon"></i>
+                                </button>
+                            </td>
+                            <td rowspan="10" valign="top">
+                                　　
+                            </td>
+                            <td rowspan="10" valign="top">
+                                <div class="ui segment">
+                                    <div class="ui bulleted list">
+                                        <div class="item">왼쪽 토글 버튼으로 아이디 인증을 받아주세요.</div>
+                                        <div class="item">
+                                            <div>아이디 규칙</div>
+                                            <div class="list">
+                                                <div class="item">최소 6자 이상 (At least 6 characters)</div>
+                                                <div class="item">중복 아이디 불가(Not allowed for duplicated)</div>
+                                                <div class="item">특수문자 불가(Not allowed for special characters)</div>
+                                            </div>
+                                        </div>
+                                        <div class="item">
+                                            <div>비밀번호 규칙</div>
+                                            <div class="list">
+                                                <div class="item">최소 8자 이상(At least 8 characters)</div>
+                                                <div class="item">특수문자 포함(Must include at least one special character)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="errorArea" class="ui segment">
+
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="ui input">
+                                    <input type="password" name="password" id="password" placeholder="비밀번호 입력" onchange="IsPasswordOK()" />
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" id="passwordButton" class="ui disabled icon button">
+                                    <i id="passwordIcon" class="exclamation triangle icon"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="ui input">
+                                    <input type="password" name="passwordAgain" id="passwordAgain" placeholder="비밀번호 확인 입력" onchange="IsPasswordOK()" />
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" id="passwordAgainButton" class="ui disabled icon button">
+                                    <i id="passwordAgainIcon" class="exclamation triangle icon"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="ui divider"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                선택 정보 입력
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="ui divider"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="ui input">
+                                    <input type="text" name="name" id="name" placeholder="이름 입력" />
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="ui input">
+                                    <input type="tel" name="phone" id="phone" placeholder="전화번호 입력" />
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="ui input">
+                                    <input type="email" name="email" id="email" placeholder="이메일 주소 입력" />
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                                <div class="ui divider"></div>
+                                <div class="ui menu segment">
+                                    <div class="ui checkbox">
+                                        <input type="checkbox" id="terms">
+                                        <label>VEGEFRUIT 이용 약관에 동의합니다.</label>
+                                    </div>                 
+                                    <div class="right menu">
+                                        <button type="submit" class="ui primary right labeled icon button">
+                                            Submit
+                                            <i class="checkmark icon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </center>
+        </div>
+    </div>
+
+    <div class="ui tiny modal">
+        <i class="close icon"></i>
+        <div class="header">
+            아이디 중복 확인 결과
+        </div>
+        <div class="image content">
+            <div id="textArea" class="description">
+
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui black deny button">
+                Okay
+            </div>
+        </div>
+    </div>
+
+    <!-- 사용되는 함수 정의 부분 -->
+    <script type="text/javascript">
+        var specialExpression = /[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"]/gi;
+        
+        function CheckID() {
+            var jsonPacket = {
+                id: document.getElementById("id").value
+            };
+
+            if (jsonPacket.id.length >= 6 && specialExpression.test(jsonPacket.id) == false) {
+                var httpObject = new XMLHttpRequest();
+
+                httpObject.open("POST", "/signup/check");
+                httpObject.onreadystatechange = function () {
+                    if(httpObject.readyState == 4 && httpObject.status == 200) {
+                        var receivedData = JSON.parse(httpObject.responseText);
+
+                        if (receivedData.message == "SUCCESSFUL") {
+                            document.getElementById("idArea").className = "ui disabled input";
+                            document.getElementById("idButtonArea").className = "ui disabled green icon button";
+                            document.getElementById("textArea").innerHTML = "사용 가능한 아이디입니다.";
+                            document.getElementById("buttonArea").className = "check icon"
+                        }
+                        else {
+                            document.getElementById("textArea").innerHTML = "중복된 아이디입니다.";
+                        }
+                    }
+                };
+                httpObject.send(JSON.stringify(jsonPacket));
+            }
+            else {
+                document.getElementById("textArea").innerHTML = "아이디 규칙에 만족되지 않는 아이디입니다.";
+            }
+
+            $('.tiny.modal').modal('show');
+        }
+
+        function IsPasswordOK() {
+            var password = document.getElementById('password').value;
+            var passwordAgain = document.getElementById('passwordAgain').value;
+            
+            if (password.length >= 8 && password.match(specialExpression)) {
+                document.getElementById("passwordButton").className = "ui disabled green icon button";
+                document.getElementById("passwordIcon").className = "check icon";
+            }
+            else {
+                document.getElementById("passwordButton").className = "ui disabled icon button";
+                document.getElementById("passwordIcon").className = "exclamation triangle icon";
+            }
+
+            if (password == passwordAgain && passwordAgain != "") {
+                document.getElementById("passwordAgainButton").className = "ui disabled green icon button";
+                document.getElementById("passwordAgainIcon").className = "check icon";
+            }
+            else {
+                document.getElementById("passwordAgainButton").className = "ui disabled icon button";
+                document.getElementById("passwordAgainIcon").className = "exclamation triangle icon";
+            }
+        }
+
+        function Submit() {
+            var innerHTML = "";
+            var flag = 0;
+
+            if (document.getElementById("idButtonArea").className != "ui disabled green icon button") {
+                innerHTML += '<div class="item"><b>아이디 인증이 완료되지 않았습니다.</b></div>';
+                flag++;
+            }
+            if (document.getElementById("passwordButton").className != "ui disabled green icon button") {
+                innerHTML += '<div class="item"><b>규칙에 어긋난 비밀번호를 입력하셨습니다.</b></div>';
+                flag++;
+            }
+            if (document.getElementById("passwordAgainButton").className != "ui disabled green icon button") {
+                innerHTML += '<div class="item"><b>비밀번호가 일치하지 않습니다.</b></div>';
+                flag++;
+            }
+            if (document.getElementById("terms").checked == false) {
+                innerHTML += '<div class="item"><b>이용 약관에 동의하셔야 합니다.</b></div>';
+                flag++;
+            }
+
+            document.getElementById('errorArea').innerHTML = innerHTML;
+
+            if(flag != 0)
+                return false;
+        }
+    </script>
+    <!-- 사용되는 함수 정의 부분 끝 -->
+</body>
+</html>
