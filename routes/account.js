@@ -14,7 +14,7 @@ var pool = mysql.createPool({
 var smtpTransport = nodemailer.createTransport({
     service: 'naver',
     auth: {
-        user: 'matthong35@naver.com',
+        user: '',
         pass: ''
     },
     tls: {

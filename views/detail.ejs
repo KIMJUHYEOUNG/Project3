@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+    <script type="text/javascript" src="https://semantic-ui.com/dist/semantic.min.js"></script>
+</head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+        <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+            <center>
+                <table border="0">
+                    <tr>
+                        <th>
+                            <div class="ui small image">
+                                <a href="/"><img src="/logo.PNG"></a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="field">
+                                <input type="text" size="50" name="query" id="query" placeholder="Search...">
+                                <input type="hidden" name="page" id="page" value="1" />
+                            </div>
+                        </th>
+                        <th>
+                            <button class="ui button" type="submit">Search</button>
+                        </th>
+                    </tr>
+                </table>
+            </center>
+        </form>
+    </div>
+    <!-- 페이지 머릿글 부분 끝 -->
+
+    <!-- 페이지 내용 -->
+    <div class="ui middle aligned stackable container">
+        <center>
+            <table border="0">
+                <tr>
+                    <!-- 중간 왼쪽 메뉴 시작 -->
+                    <td valign="top" width="20%">
+                        <div class="ui vertical menu">
+                            <a class="item">
+                                <div style="line-height:1.4em" class="ui segment" id="loginArea">
+                                    <form action="/account/login" method="post" class="ui center aligned form" >
+                                        <div id="accountArea" class="card">
+                                            <input type="text" name="loginID" id="loginID" placeholder="ID" required >
+                                            <input type="password" name="loginPW" id="loginPW" placeholder="Password" required >
+                                            
+                                            <p></p>
+    
+                                            <div class="extra content">
+                                                <button type="submit" class="fluid ui primary button" >로그인<i class="right floated id card outline icon" ></i></button>
+                                                <button type="button" class="fluid ui secondary button" onclick="location.href='/signup'"; >회원가입<i class="right floated id card icon"></i></button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </a>
+                            <div class="item">
+                                카테고리
+                                <div class="menu">
+                                    <a class="item" href="/items/fruit" >과일(Fruit)</a>
+                                    <a class="item" href="/items/vegetable" >채소(Vegetable)</a>
+                                    <a class="item" href="/items/beverage" >음료(Beverage)</a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <!-- 중간 왼쪽 메뉴 끝 -->
+                    <td valign="top">
+                        <div class="ui segment" id="innerArea">
+                            <center>
+                                <table border="0">
+                                    <tr>
+                                        <td valign=top rowspan="12"><img class="ui medium image" src="<%= rows[0].imageURL %>"></td>
+                                        <td rowspan="12">　</td>
+                                        <td><b><%= rows[0].name %></b></td>
+                                    </tr>
+                                    <tr><td><%= rows[0].seller %></td></tr>
+                                    <tr><td><i class="won sign icon"></i><%= Number(rows[0].price).toLocaleString('en') %></td></tr>
+                                    <tr><td><div class="ui divider"></div></td></tr>
+                                    <tr><td><i class="truck icon"></i><%= rows[0].freeShipping ? '무료배송' : '2,500원' %></td></tr>
+                                    <tr><td><i class="green star icon"></i><%= rows[0].rating %></td></tr>
+                                    <tr><td><div class="ui divider"></div></td></tr>
+                                    <tr><td>대분류: <%= (rows[0].sort).toUpperCase() %></td></tr>
+                                    <tr><td>구매수량: <%= Number(rows[0].soldAmount).toLocaleString('en') %></td></tr>
+                                    <tr><td> </td></tr>
+                                    <tr><td>
+                                        <div class="ui segment">
+                                            수량(Quantity)
+                                            <select id="quantity" class="ui dropdown">
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                                <option value="6">6</option>
+                                                <option value="7">7</option>
+                                                <option value="8">8</option>
+                                                <option value="9">9</option>
+                                                <option value="10">10</option>
+                                            </select>
+                                            <button class="ui green right labeled icon button" onclick="CheckLoginStateAndSave()">
+                                            <i class="shopping cart icon"></i>장바구니에 넣기
+                                            </button>
+                                        </div>
+                                    </td></tr>
+                                </table>
+                            </center>
+                        </div>
+                        <div class="ui segment">
+                            <h4 class="ui dividing header">상품 상세정보</h4>
+                            <p></p>
+                            <div id="description">
+                                <%= rows[0].description %>
+                            </div>
+                        </div>
+                        <div class="ui segment">
+                            <h4 class="ui dividing header">상품 리뷰</h4>
+                            
+                            <p></p>
+                            <div id="getreview">
+                               
+                            </div>
+
+                            <div class="ui segment">
+                                <table border="0">
+                                    <td valign="middle">
+                                        내용
+                                    </td>
+                                    <td>
+                                        <div class="ui input">
+                                            <input type="text" id="content" name="content" size="50" maxlength="300"/>
+                                        </div>
+                                    </td>
+                                    <td>　</td>
+                                    <td>
+                                        만족도
+                                        <select id="satisfaction" name="satisfaction" class="ui dropdown">
+                                            <option value="0">0%</option>
+                                            <option value="10">10%</option>
+                                            <option value="20">20%</option>
+                                            <option value="30">30%</option>
+                                            <option value="40">40%</option>
+                                            <option value="50">50%</option>
+                                            <option value="60">60%</option>
+                                            <option value="70">70%</option>
+                                            <option value="80">80%</option>
+                                            <option value="90">90%</option>
+                                            <option value="100">100%</option>
+                                        </select>
+                                    </td>
+                                    <td>　</td>
+                                    <td>
+                                        <button class="ui blue right icon button" onclick="CheckLoginStateAndSaveReview()">
+                                            리뷰 등록
+                                        </button>
+                                    </td>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+
+    <script type="text/javascript">
+        ShowLeftMenu(); // 로그인이 되어 있을 경우 다른 메뉴 부분을 출력하는 함수
+
+        ShowDescription();
+        getReview(1); // 리뷰 가져오는 함수
+    
+        function ShowDescription() {
+            var str = document.getElementById("description").innerHTML;
+            var regExp = '&lt;br/&gt;';
+
+            str = str.replace(new RegExp(regExp, 'gi'), '<br/>');
+            document.getElementById("description").innerHTML = str;
+        }
+
+        function CheckLoginStateAndSave() { // 로그인 상태 확인하고 장바구니에 저장하는 함수
+            $('.ui.basic.modal').modal('show');
+
+            if(!getCookie("id")) {
+                document.getElementById("checkMessage").innerHTML = "<p><center>왼쪽 메뉴에서 로그인을 먼저 진행해 주세요.</center></p>";
+                return;
+            }
+
+            var dropdownMenu = document.getElementById("quantity");
+
+            var jsonPacket = {
+                id: getCookie("id"),
+                num: '<%= rows[0].num %>',
+                quantity: dropdownMenu.options[dropdownMenu.selectedIndex].value
+            };
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/basket/add");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    var innerHTML = "";
+
+                    innerHTML += '<p><center>장바구니에 성공적으로 등록하였습니다.</center></p>';
+                    innerHTML += '<center><button onclick="location.href=\'/basket\'" class="ui primary button">장바구니 보러가기</button></center>';
+
+                    document.getElementById("checkMessage").innerHTML = innerHTML;
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));
+        }
+
+        function ShowLeftMenu() {
+            if(getCookie("id")) {
+                var innerHTML = "";
+
+                innerHTML += '<div class="content">';
+                innerHTML += '<div class="meta">';
+                innerHTML += '방문을 환영합니다!'
+                innerHTML += '</div>';
+                innerHTML += '</div>';
+                innerHTML += '<div class="header">';
+                innerHTML += '<b>' + getCookie("id") + '</b>';
+                innerHTML += '</div>';
+                innerHTML += '<p></p>';
+                innerHTML += '<div class="extra content">';
+                innerHTML += '<button class="fluid ui primary button" onclick="location.href=\'/account/info\'" >회원정보<i class="right floated id card outline icon" ></i></button>';
+                innerHTML += '<button class="fluid ui grey button" onclick="Logout()"; >로그아웃<i class="right floated sign out alternate icon"></i></button>';
+                innerHTML += '<button class="fluid ui green button" onclick="location.href=\'/basket\'" ;>장바구니<i class="right floated shopping basket icon"></i></button>';
+                innerHTML += '</div>';
+
+                document.getElementById("loginArea").innerHTML = innerHTML;
+            }
+        }
+
+        function getCookie(id) { // 페이지의 쿠키 정보를 확인하는 함수
+            var value = document.cookie.match('(^|;) ?' + id + '=([^;]*)(;|$)');
+            return value ? value[2] : null;
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.reload();
+        }
+
+        function CheckLoginStateAndSaveReview() {
+            if(!getCookie("id")) {
+                alert("왼쪽 메뉴에서 로그인을 먼저 진행해 주세요.");
+                return;
+            }
+
+            else if(document.getElementById("content").value == "") {
+                alert("내용을 입력해 주세요.");
+                return;
+            }
+
+            var dropdownMenu = document.getElementById("satisfaction");
+
+            var jsonPacket = {
+                id: getCookie("id"),
+                num: '<%= rows[0].num %>',
+                content: document.getElementById("content").value,
+                satisfaction: dropdownMenu.options[dropdownMenu.selectedIndex].value
+            };
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/items/review/register");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    var innerHTML = "";
+                    alert("리뷰를 등록하였습니다.");
+                    location.reload();
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));
+        }
+
+        function getReview(page) {
+            var jsonPacket = {
+                num: '<%= rows[0].num %>',
+                page: page
+            };
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/items/review/get");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    var resultArray = JSON.parse(httpObject.responseText).rows;
+                    var innerHTML = "";
+
+                    var count = JSON.parse(httpObject.responseText).result[0].allitems;
+
+                    innerHTML += '<table class="ui fixed table">';
+                    innerHTML += '<thead>';
+                    innerHTML += '<tr><th class="seven wide">';
+                    innerHTML += '내용';
+                    innerHTML += '</th><th class="two wide">';
+                    innerHTML += '만족도';
+                    innerHTML += '</th><th class="two wide">';
+                    innerHTML += '작성자';
+                    innerHTML += '</th><th class="three wide">';
+                    innerHTML += '작성 시간';
+                    innerHTML += '</th><th class="two wide">';
+                    innerHTML += '</th></tr>';
+                    innerHTML += '</thead>';
+
+                    innerHTML += '<tbody>';
+
+                    for(var i=0; i<resultArray.length; i++) {
+                        var date = new Date(resultArray[i].stamp);
+
+                        innerHTML += '<tr><td>';
+                        innerHTML += resultArray[i].content;
+                        innerHTML += '</td><td>';
+                        innerHTML += resultArray[i].satisfaction;
+                        innerHTML += '</td><td>';
+                        innerHTML += resultArray[i].id;
+                        innerHTML += '</td><td>';
+                        innerHTML += date.getFullYear() + "년 " + (date.getMonth() + 1) + "월 " + date.getDate() + "일";
+                        innerHTML += '</td>';
+
+                        if(getCookie("id") == resultArray[i].id) {
+                            innerHTML += '<td>';
+                            innerHTML += '<button class="ui gray right icon button" onclick="deleteReview(\''+resultArray[i].content+'\', \''+resultArray[i].satisfaction+'\', \''+resultArray[i].id+'\', \''+resultArray[i].item+'\')">리뷰 삭제</button>';
+                            innerHTML += '</td>';
+                        }
+                        else {
+                            innerHTML += '<td></td>';
+                        }
+                        innerHTML += '</tr>';
+                    }
+
+                    innerHTML += '</tbody>';
+                    innerHTML += '<tfoot>';
+                    innerHTML += '<tr><th colspan="5">';
+
+                    if(count > 5) {
+                        innerHTML += '<div class="ui right floated pagination menu">';
+
+                        if(page != 1)
+                            innerHTML += '<a class="item" onclick="getReview(' + (page - 1) + ')"><< 이전 5개</a>';
+                        if((page * 5) < count)
+                            innerHTML += '<a class="item" onclick="getReview(' + (page + 1) + ')">다음 5개 >></a>';
+
+                        innerHTML += '</div>';
+                    }
+
+                    innerHTML += '</th>';
+                    innerHTML += '</tfoot>';
+                    innerHTML += '</table>';
+
+                    document.getElementById("getreview").innerHTML = innerHTML;
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));
+        }
+
+        function deleteReview(content, satisfaction, id, item) {
+            var jsonPacket = {
+                content: content,
+                satisfaction: satisfaction,
+                id: id,
+                item: item
+            };
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/items/review/delete");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    var innerHTML = "";
+                    alert("리뷰를 삭제하였습니다.");
+                    location.reload();
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));
+
+        }
+    </script>
+
+    <!-- 이 부분은 페이지에는 나타나지 않으나 팝업 형식으로만 출력됨 -->
+    <div class="ui basic modal">
+        <div class="ui icon header">
+            <i class="info circle icon"></i>
+            알림 메시지
+        </div>
+        <div id="checkMessage" class="content">
+            
+        </div>
+        <div class="actions">
+            <div class="ui secondary ok inverted button">
+                <i class="checkmark icon"></i>
+                Close
+            </div>
+        </div>
+    </div>
+</body>
+</html>
