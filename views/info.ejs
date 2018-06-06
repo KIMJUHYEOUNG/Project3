@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+</head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+        <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+            <center>
+                <table border="0">
+                    <tr>
+                        <th>
+                            <div class="ui small image">
+                                <a href="/"><img src="/logo.PNG"></a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="field">
+                                <input type="text" size="50" name="query" id="query" placeholder="Search...">
+                                <input type="hidden" name="page" id="page" value="1" />
+                            </div>
+                        </th>
+                        <th>
+                            <button class="ui button" type="submit">Search</button>
+                        </th>
+                    </tr>
+                </table>
+            </center>
+        </form>
+    </div>
+    <!-- 페이지 머릿글 부분 끝 -->
+
+    <!-- 페이지 내용 -->
+    <div class="ui middle aligned stackable container">
+        <center>
+            <table border="0">
+                <tr>
+                    <!-- 중간 왼쪽 메뉴 시작 -->
+                    <td valign="top" width="20%">
+                        <div class="ui vertical menu">
+                            <a class="item">
+                                <div style="line-height:1.4em" class="ui segment" id="loginArea">
+                                    <form action="/account/login" method="post" class="ui center aligned form" >
+                                        <div class="card">
+                                            <input type="text" name="loginID" id="loginID" placeholder="ID" required >
+                                            <input type="password" name="loginPW" id="loginPW" placeholder="Password" required >
+                                            
+                                            <p></p>
+    
+                                            <div class="extra content">
+                                                <button type="submit" class="fluid ui primary button" >로그인<i class="right floated id card outline icon" ></i></button>
+                                                <button type="button" class="fluid ui secondary button" onclick="location.href='/signup'"; >회원가입<i class="right floated id card icon"></i></button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </a>
+                            <div class="item">
+                                회원정보
+                                <div class="menu">
+                                    <a class="item" href="/account/info" >회원정보 변경</a>
+                                    <a class="item" href="/account/password" >비밀번호 변경</a>
+                                    <a class="item" href="/account/withdrawal" >회원탈퇴</a>
+                                </div>
+                            </div>
+                            <a class="item" href="/shipping/1">
+                                주문/배송 조회
+                            </a>
+                            <a class="item" href="/seller">
+                                판매자 메뉴
+                            </a>
+                        </div>
+                    </td>
+                    <!-- 중간 왼쪽 메뉴 끝 -->
+                    <td valign="top">
+                        <h4 class="ui dividing header">회원정보 변경</h4>
+                        <p></p>
+                        <table class="ui definition table">
+                            <tbody>
+                                <tr>
+                                    <td>아이디</td>
+                                    <td><div class="ui input">
+                                        <input type="text" value="<%= rows[0].id %>" id="idInput" disabled />
+                                    </div></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>성명</td>
+                                    <td><div class="ui input">
+                                        <input type="text" value="<%= rows[0].name %>" id="nameInput" maxlength="20" placeholder="Enter name here" />
+                                    </div></td>
+                                    <td>최대 20글자까지 가능 (Max. 20 characters)</td>
+                                </tr>
+                                <tr>
+                                    <td>이메일 주소</td>
+                                    <td><div class="ui input">
+                                        <input type="email" value="<%= rows[0].email %>" id="emailInput" placeholder="Enter email here" />
+                                        <input type="hidden" value="<%= rows[0].email %>" id="oldEmailInput" />
+                                    </div></td>
+                                    <td><button onclick="SendEmail()" class="ui button">이메일 인증</button></td>
+                                </tr>
+                                <tr>
+                                    <td>이메일 인증</td>
+                                    <td><div class="ui input">
+                                        <input type="text" maxlength="5" onkeydown="CheckNumber(this)" id="validation" placeholder="Enter validation number" disabled />
+                                    </div></td>
+                                    <td>
+                                        <button id="validationButton" onclick="CheckSerial()" class="ui right labeled icon button" disabled>
+                                        <i class="right arrow icon" id="validationIcon"></i>
+                                            확인
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>전화번호</td>
+                                    <td><div class="ui input">
+                                        <input type="text" value="<%= rows[0].phone %>" maxlength="13" onkeydown="PhoneNumberCheck()" id="cellPhone" placeholder="Enter phone number" />
+                                    </div></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>회원 등급</td>
+                                    <td>
+                                        <%= (rows[0].position == 2) ? "관리자(Admin)" : (rows[0].position == 1) ? "판매자(Seller)" : "일반회원(Normal)" %>
+                                    </td>
+                                    <td>
+                                        <button onclick="CheckSeller(<%= rows[0].position %>)" class="ui green button">판매자 인증</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>계정 생성일</td>
+                                    <td>
+                                        <% var date = new Date(Number(rows[0].stamp)) %>
+                                        <%= date.getFullYear() + "년 " + (date.getMonth() + 1) + "월 " + date.getDate() + "일" %>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="ui menu">
+                            <div class="right menu">
+                                <div class="item">
+                                    <div onclick="Change()" class="ui primary button">정보 변경</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+    <!-- 페이지 내용 끝 -->
+
+    <!-- 사용되는 함수 정의 부분 -->
+    <script type="text/javascript">
+        // 코드 실제로 실행되는 부분
+
+        valid = 0; // 이메일 인증 여부 관련 전역변수
+        serial = 0; // 이메일 인증 번호에 관한 전역 변수
+
+        ShowLeftMenu(); // 로그인이 되어 있을 경우 다른 메뉴 부분을 출력하는 함수
+
+        function ShowLeftMenu() {
+            if(getCookie("id")) {
+                var innerHTML = "";
+
+                innerHTML += '<div class="content">';
+                innerHTML += '<div class="meta">';
+                innerHTML += '방문을 환영합니다!'
+                innerHTML += '</div>';
+                innerHTML += '</div>';
+                innerHTML += '<div class="header">';
+                innerHTML += '<b>' + getCookie("id") + '</b>';
+                innerHTML += '</div>';
+                innerHTML += '<p></p>';
+                innerHTML += '<div class="extra content">';
+                innerHTML += '<button class="fluid ui primary button" onclick="location.href=\'/account/info\'" >회원정보<i class="right floated id card outline icon" ></i></button>';
+                innerHTML += '<button class="fluid ui grey button" onclick="Logout()"; >로그아웃<i class="right floated sign out alternate icon"></i></button>';
+                innerHTML += '<button class="fluid ui green button" onclick="location.href=\'/basket\'" ;>장바구니<i class="right floated shopping basket icon"></i></button>';
+                innerHTML += '</div>';
+
+                document.getElementById("loginArea").innerHTML = innerHTML;
+            }
+        }
+
+        function getCookie(id) { // 페이지의 쿠키 정보를 확인하는 함수
+            var value = document.cookie.match('(^|;) ?' + id + '=([^;]*)(;|$)');
+            return value ? value[2] : null;
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.reload();
+        }
+
+        function SendEmail() { // 이메일을 보내 인증을 하는 함수
+            if(document.getElementById("emailInput").value == "") {
+                alert("이메일 주소를 입력하여 주십시오.");
+                return false;
+            }
+
+            document.getElementById("validation").disabled = false;
+            document.getElementById("validationButton").disabled = false;
+            document.getElementById("validationButton").className = "ui right labeled icon button";
+            document.getElementById("validationIcon").className = "right arrow icon";
+
+            serial = (Math.floor(Math.random() * 100000) + 1);
+            valid = 0;
+
+            var innerHTML = "";
+
+            innerHTML += '<center><b>이메일 인증입니다.</b></center>';
+            innerHTML += '<p></p><p></p>';
+            innerHTML += '<center>인증번호는 : ';
+            innerHTML += '<b>' + serial + '</b>';
+            innerHTML += ' 입니다.</center>';
+
+            var jsonPacket = {
+                email: document.getElementById("emailInput").value,
+                subject: "VEGEFRUIT: Activation Mail",
+                html: innerHTML
+            };
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/account/email");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    alert("인증번호를 발송하였습니다. 이메일을 확인해 주세요.");
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));            
+        }
+
+        function CheckSerial() { // 인증 번호로 인증하는 함수
+            if (document.getElementById("validation").value == serial) {
+                alert("인증되었습니다.");
+                valid = 1;
+                document.getElementById("validation").value = "";
+                document.getElementById("validation").disabled = true;
+                document.getElementById("validationButton").disabled = true;
+                document.getElementById("validationButton").className = "ui green right labeled icon button";
+                document.getElementById("validationIcon").className = "check icon";
+            }
+            else
+                alert("인증번호를 잘못 입력하셨습니다.");
+        }
+
+        function autoHypenPhone(str) {
+            str = str.replace(/[^0-9]/g, '');
+            var tmp = '';
+            if (str.length < 4) {
+                return str;
+            } else if (str.length < 7) {
+                tmp += str.substr(0, 3);
+                tmp += '-';
+                tmp += str.substr(3);
+                return tmp;
+            } else if (str.length < 11) {
+                tmp += str.substr(0, 3);
+                tmp += '-';
+                tmp += str.substr(3, 3);
+                tmp += '-';
+                tmp += str.substr(6);
+                return tmp;
+            } else {
+                tmp += str.substr(0, 3);
+                tmp += '-';
+                tmp += str.substr(3, 4);
+                tmp += '-';
+                tmp += str.substr(7);
+                return tmp;
+            }
+        }
+
+        function PhoneNumberCheck() {
+            var cellPhone = document.getElementById('cellPhone');
+            cellPhone.onkeyup = function (event) {
+                event = event || window.event;
+                var _val = this.value.trim();
+                this.value = autoHypenPhone(_val);
+            }
+        }
+
+        function CheckSeller(status) { // 판매자인지 확인하는 함수
+            if (status == 1)
+                alert("이미 판매자입니다.");
+            else {
+                var jsonPacket = {
+                    id: getCookie("id")
+                };
+
+                var httpObject = new XMLHttpRequest();
+
+                httpObject.open("POST", "/account/valid");
+                httpObject.onreadystatechange = function () {
+                    if(httpObject.readyState == 4 && httpObject.status == 200) {
+                        alert(httpObject.responseText);
+                    }
+                };
+                httpObject.send(JSON.stringify(jsonPacket));  
+            }
+        }
+
+        function Change() { // 변경 사항을 저장하는 함수
+            var jsonPacket = {
+                id: getCookie("id"),
+                name: document.getElementById("nameInput").value,
+                email: document.getElementById("oldEmailInput").value,
+                phone: document.getElementById("cellPhone").value
+            };
+
+            if (valid == 1)
+                jsonPacket.email = document.getElementById("emailInput").value;
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/account/change");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    alert("회원 정보가 변경되었습니다.");
+                    location.reload();
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));  
+        }
+    </script>
+</body>
+</html>
