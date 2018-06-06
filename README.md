@@ -1,4 +1,4 @@
-#Project3
+Project3
 팀장  
 2012722099 이태빈(obeyerbin)  
 팀원  
