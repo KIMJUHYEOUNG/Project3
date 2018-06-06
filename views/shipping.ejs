@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+</head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+        <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+            <center>
+                <table border="0">
+                    <tr>
+                        <th>
+                            <div class="ui small image">
+                                <a href="/"><img src="/logo.PNG"></a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="field">
+                                <input type="text" size="50" name="query" id="query" placeholder="Search...">
+                                <input type="hidden" name="page" id="page" value="1" />
+                            </div>
+                        </th>
+                        <th>
+                            <button class="ui button" type="submit">Search</button>
+                        </th>
+                    </tr>
+                </table>
+            </center>
+        </form>
+    </div>
+    <!-- 페이지 머릿글 부분 끝 -->
+
+    <!-- 페이지 내용 -->
+    <div class="ui middle aligned stackable container">
+        <center>
+            <table border="0">
+                <tr>
+                    <!-- 중간 왼쪽 메뉴 시작 -->
+                    <td valign="top" width="20%">
+                        <div class="ui vertical menu">
+                            <a class="item">
+                                <div style="line-height:1.4em" class="ui segment" id="loginArea">
+                                    <form action="/account/login" method="post" class="ui center aligned form" >
+                                        <div class="card">
+                                            <input type="text" name="loginID" id="loginID" placeholder="ID" required >
+                                            <input type="password" name="loginPW" id="loginPW" placeholder="Password" required >
+                                            
+                                            <p></p>
+    
+                                            <div class="extra content">
+                                                <button type="submit" class="fluid ui primary button" >로그인<i class="right floated id card outline icon" ></i></button>
+                                                <button type="button" class="fluid ui secondary button" onclick="location.href='/signup'"; >회원가입<i class="right floated id card icon"></i></button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </a>
+                            <div class="item">
+                                회원정보
+                                <div class="menu">
+                                    <a class="item" href="/account/info" >회원정보 변경</a>
+                                    <a class="item" href="/account/password" >비밀번호 변경</a>
+                                    <a class="item" href="/account/withdrawal" >회원탈퇴</a>
+                                </div>
+                            </div>
+                            <a class="item" href="/shipping/1">
+                                주문/배송 조회
+                            </a>
+                            <a class="item" href="/seller">
+                                판매자 메뉴
+                            </a>
+                        </div>
+                    </td>
+                    <!-- 중간 왼쪽 메뉴 끝 -->
+                    <td valign="top">
+                        <h4 class="ui dividing header">주문/배송 조회</h4>
+                        <% if(rows.length == 0) { %>
+                            <center><b>주문 목록에 상품이 없습니다.</b></center>
+                        <% } else { %>
+                            <table class="ui striped single line fixed table">
+                                <thead>
+                                    <tr>
+                                        <th class="one wide"></th>
+                                        <th>상품 제목</th>
+                                        <th>상품 주문(수정) 시각</th>
+                                        <th>배송 상태</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% var length = (pages - 1) * 10; %>
+                                    <% for(var i = 0; i < rows.length; i++) { %>
+                                        <tr>
+                                            <td><%= i + 1 + length %></td>
+                                            <td>
+                                                <%= rows[i].name %> 
+                                            </td>
+                                            <td>
+                                                <% var date = new Date(Number(rows[i].stamp)) %>
+                                                <%= date.getFullYear() + "년 " + (date.getMonth() + 1) + "월 " + date.getDate() + "일" %>                                                
+                                                <%= date.getHours() + ":" + (date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes()) + ":" + (date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds()) %>
+                                            </td>
+                                            <td>
+                                                <%= (rows[i].proc == 3) ? "상품 수령" : (rows[i].proc == 2) ? "배송중" : (rows[i].proc == 1) ? "배송 준비중" : "결제 완료" %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <div class="ui styled fluid accordion">
+                                                    <div class="title" id="title<%= i %>" onclick="OpenAndCloseContent(<%= i %>)">
+                                                        <i class="dropdown icon"></i>
+                                                        상품 상세 정보 확인
+                                                    </div>
+                                                    <div class="content" id="content<%= i %>">
+                                                        <table class="ui definition fixed table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="three wide"></th>
+                                                                    <th class="thirtheen wide">상세 정보</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>수령인 성명</th>
+                                                                    <td><div id="name<%= i %>"><%= rows[i].recipient %></div></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>판매자</th>
+                                                                    <td><%= rows[i].seller %></td>
+                                                                </tr>    
+                                                                <tr>
+                                                                    <td>배송지</th>
+                                                                    <td><div id="address<%= i %>"><%= rows[i].address %></div></td>
+                                                                </tr>                   
+                                                                <tr>
+                                                                    <td>전화번호</th>
+                                                                    <td><div id="phone<%= i %>"><%= rows[i].phone %></div></td>
+                                                                </tr>     
+                                                                <tr>
+                                                                    <td>물품 상세 정보</th>
+                                                                    <td><a href="/items/<%= rows[i].num %>">상세 페이지로 이동</a></td>
+                                                                </tr>     
+                                                                <tr>
+                                                                    <td>주문 수량</th>
+                                                                    <td><div id="quantity<%= i %>"><%= rows[i].quantity %></div></td>
+                                                                </tr>    
+                                                                <tr>
+                                                                    <td>주문정보 수정</th>
+                                                                    <td><div id="change<%= i %>">
+                                                                            <% if(rows[i].proc != 0) { %>
+                                                                                (* 배송 준비중 이후부터는 수정할 수 없습니다.)
+                                                                            <% } else { %>
+                                                                                <button onclick="Modify(<%= i %>)" class="ui primary button">
+                                                                                    주문정보 수정
+                                                                                </button>
+                                                                            <% } %>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <!-- 아래 스크립트 코드는 오른쪽으로 너무 길어져 왼쪽으로 편집함-->
+        <script>
+            function Modify(index) {
+                var innerHTMLForRecipient = "";
+                var innerHTMLForAddress = "";
+                var innerHTMLForPhone = "";
+                var innerHTMLForQuantity = "";
+                var innerHTMLForButton = "";
+
+                innerHTMLForAddress = innerHTMLForPhone = innerHTMLForQuantity = innerHTMLForRecipient = "<div class='ui fluid input'>";
+                innerHTMLForButton = "<button onclick='ModifyConfirm(" + index + ")' class='ui secondary button'>주문정보 수정 확인</button>";
+
+                innerHTMLForRecipient += '<input id="name" value="' + document.getElementById('name' + index).innerHTML + '">';
+                innerHTMLForAddress += '<input id="address" value="' + document.getElementById('address' + index).innerHTML + '">';
+                innerHTMLForPhone += '<input id="phone" onkeydown="PhoneNumberCheck()" value="' + document.getElementById('phone' + index).innerHTML + '">';
+                innerHTMLForQuantity += '<input id="quantity" value="' + document.getElementById('quantity' + index).innerHTML + '">';
+                
+                innerHTMLForRecipient += '<input type="hidden" id="nameHidden" value="' + document.getElementById('name' + index).innerHTML + '">';
+                innerHTMLForAddress += '<input type="hidden" id="addressHidden" value="' + document.getElementById('address' + index).innerHTML + '">';
+                innerHTMLForPhone += '<input type="hidden" id="phoneHidden" value="' + document.getElementById('phone' + index).innerHTML + '">';
+                innerHTMLForQuantity += '<input type="hidden" id="quantityHidden" value="' + document.getElementById('quantity' + index).innerHTML + '">';
+
+                innerHTMLForAddress += "</div>";
+                innerHTMLForPhone += "</div>";
+                innerHTMLForQuantity += "</div>";
+                innerHTMLForRecipient += "</div>";
+
+                document.getElementById('name' + index).innerHTML = innerHTMLForRecipient;
+                document.getElementById('address' + index).innerHTML = innerHTMLForAddress;
+                document.getElementById('phone' + index).innerHTML = innerHTMLForPhone;
+                document.getElementById('quantity' + index).innerHTML = innerHTMLForQuantity;
+                document.getElementById('change' + index).innerHTML = innerHTMLForButton;
+            }
+
+            function ModifyConfirm(index) {
+                var httpObject = new XMLHttpRequest();
+
+                var jsonPacket = {
+                    oldRecipient: document.getElementById('nameHidden').value,
+                    oldAddress: document.getElementById('addressHidden').value,
+                    oldPhone: document.getElementById('phoneHidden').value,
+                    oldQuantity: document.getElementById('quantityHidden').value,
+                    recipient: document.getElementById('name').value,
+                    address: document.getElementById('address').value,
+                    phone: document.getElementById('phone').value,
+                    quantity: document.getElementById('quantity').value,
+                    id: getCookie("id")
+                }
+
+                httpObject.open("POST", "/shipping/modify");
+                httpObject.onreadystatechange = function () {
+                    if(httpObject.readyState == 4 && httpObject.status == 200) {
+                        alert("정상적으로 수정되었습니다.");
+                        location.reload();
+                    }
+                };
+                httpObject.send(JSON.stringify(jsonPacket));
+            }
+        </script>                                         
+                                                                <!-- 스크립트의 끝 -->   
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>  
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="4">
+                                            <% if(result[0].allitems > 10) { %>
+                                                <div class="ui right floated pagination menu">
+                                                    <% var page = parseInt(pages) %>
+                                                    <% if(pages != 1)  { %>
+                                                        <a href="/shipping/<%= (page - 1) %>" class="item"><< 이전 10개</a>
+                                                    <% } %>
+                                                    <% if((pages * 10) < result[0].allitems) { %>
+                                                        <a href="/shipping/<%= (page + 1) %>" class="item">다음 10개 >></a>
+                                                    <% } %>
+                                                </div>
+                                            <% } %>
+                                        </th>
+                                    </tr>  
+                                </tfoot>
+                            </table>
+                        <% } %>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+    <!-- 페이지 내용 끝 -->
+
+    <!-- 사용되는 함수 정의 부분 -->
+    <script type="text/javascript">
+        // 코드 실제로 실행되는 부분
+
+        ShowLeftMenu(); // 로그인이 되어 있을 경우 다른 메뉴 부분을 출력하는 함수
+
+        function ShowLeftMenu() {
+            if(getCookie("id")) {
+                var innerHTML = "";
+
+                innerHTML += '<div class="content">';
+                innerHTML += '<div class="meta">';
+                innerHTML += '방문을 환영합니다!'
+                innerHTML += '</div>';
+                innerHTML += '</div>';
+                innerHTML += '<div class="header">';
+                innerHTML += '<b>' + getCookie("id") + '</b>';
+                innerHTML += '</div>';
+                innerHTML += '<p></p>';
+                innerHTML += '<div class="extra content">';
+                innerHTML += '<button class="fluid ui primary button" onclick="location.href=\'/account/info\'" >회원정보<i class="right floated id card outline icon" ></i></button>';
+                innerHTML += '<button class="fluid ui grey button" onclick="Logout()"; >로그아웃<i class="right floated sign out alternate icon"></i></button>';
+                innerHTML += '<button class="fluid ui green button" onclick="location.href=\'/basket\'" ;>장바구니<i class="right floated shopping basket icon"></i></button>';
+                innerHTML += '</div>';
+
+                document.getElementById("loginArea").innerHTML = innerHTML;
+            }
+        }
+
+        function getCookie(id) { // 페이지의 쿠키 정보를 확인하는 함수
+            var value = document.cookie.match('(^|;) ?' + id + '=([^;]*)(;|$)');
+            return value ? value[2] : null;
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.reload();
+        }
+
+        function OpenAndCloseContent(index) {
+            if(document.getElementById("title" + index).className == 'title') {
+                document.getElementById("title" + index).className = 'active title';
+                document.getElementById("content" + index).className = 'active content';
+            }
+            else {
+                document.getElementById("title" + index).className = 'title';
+                document.getElementById("content" + index).className = 'content';
+            }
+        }
+
+
+
+        function autoHypenPhone(str) {
+            str = str.replace(/[^0-9]/g, '');
+            var tmp = '';
+            if (str.length < 4) {
+                return str;
+            } else if (str.length < 7) {
+                tmp += str.substr(0, 3);
+                tmp += '-';
+                tmp += str.substr(3);
+                return tmp;
+            } else if (str.length < 11) {
+                tmp += str.substr(0, 3);
+                tmp += '-';
+                tmp += str.substr(3, 3);
+                tmp += '-';
+                tmp += str.substr(6);
+                return tmp;
+            } else {
+                tmp += str.substr(0, 3);
+                tmp += '-';
+                tmp += str.substr(3, 4);
+                tmp += '-';
+                tmp += str.substr(7);
+                return tmp;
+            }
+        }
+
+        function PhoneNumberCheck() {
+            var cellPhone = document.getElementById('phone');
+            cellPhone.onkeyup = function (event) {
+                event = event || window.event;
+                var _val = this.value.trim();
+                this.value = autoHypenPhone(_val);
+            }
+        }
+    </script>
+</body>
+</html>

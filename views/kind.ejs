@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Category : <%= kind.toUpperCase() %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+    </head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+    <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+        <center>
+            <table border="0">
+                <tr>
+                    <th>
+                        <div class="ui small image">
+                            <a href="/"><img src="/logo.PNG"></a>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="field">
+                            <input type="text" size="50" name="query" id="query" placeholder="Search...">
+                            <input type="hidden" name="page" id="page" value="1" />
+                        </div>
+                    </th>
+                    <th>
+                        <button class="ui button" type="submit">Search</button>
+                    </th>
+                </tr>
+            </table>
+        </center>
+    </form>
+    </div>
+    <!-- 페이지 머릿글 부분 끝 -->
+
+    <!-- 페이지 내용 -->
+    <div class="ui middle aligned stackable container">
+    <center>
+        <table border="0">
+            <tr>
+                <!-- 중간 왼쪽 메뉴 시작 -->
+                <td valign="top" width="20%">
+                    <div class="ui vertical menu">
+                        <a class="item">
+                            <div style="line-height:1.4em" class="ui segment" id="loginArea">
+                                <form action="/account/login" method="post" class="ui center aligned form" >
+                                    <div class="card">
+                                        <input type="text" name="loginID" id="loginID" placeholder="ID" required >
+                                        <input type="password" name="loginPW" id="loginPW" placeholder="Password" required >
+                                        
+                                        <p></p>
+
+                                        <div class="extra content">
+                                            <button type="submit" class="fluid ui primary button" >로그인<i class="right floated id card outline icon" ></i></button>
+                                            <button type="button" class="fluid ui secondary button" onclick="location.href='/signup'"; >회원가입<i class="right floated id card icon"></i></button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </a>
+                        <div class="item">
+                            카테고리
+                            <div class="menu">
+                                <a class="item" href="/items/fruit" >과일(Fruit)</a>
+                                <a class="item" href="/items/vegetable" >채소(Vegetable)</a>
+                                <a class="item" href="/items/beverage" >음료(Beverage)</a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <!-- 중간 왼쪽 메뉴 끝 -->
+                <td valign="top">
+                    <div class="ui segment">
+                        <div class="ui breadcrumb">
+                            Sort by : 
+                            <a class="active section" id="first" onclick="ChangeToggleAndGetItemData(1, 1)" >Most Sold</a>
+                            <span class="divider">/</span>
+                            <a class="section" id="second" onclick="ChangeToggleAndGetItemData(2, 1)" >Lower Price</a>
+                            <span class="divider">/</span>
+                            <a class="section" id="third" onclick="ChangeToggleAndGetItemData(3, 1)" >Higher Price</a>
+                            <span class="divider">/</span>
+                            <a class="section" id="fourth" onclick="ChangeToggleAndGetItemData(4, 1)" >Name</a>
+                        </div>
+                    </div>
+                    <div class="ui segment" id="innerArea">
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </center>
+    </div>
+    <!-- 페이지 내용 끝 -->
+
+    <!-- 사용되는 함수 정의 부분 -->
+    <script type="text/javascript">
+        ChangeToggleAndGetItemData(1, 1); // 홈페이지 처음 접속시 인기 판매 순으로 출력
+
+        ShowLeftMenu(); // 로그인이 되어 있을 경우 다른 메뉴 부분을 출력하는 함수
+
+        function ChangeToggleAndGetItemData(index, page) { // 토글 변경하고 데이터베이스에서 항목 추출해서 가져오는 부분
+            var sort = "";
+
+            switch(index) {
+                case 1: {
+                    sort = "soldAmount desc";
+                    document.getElementById("first").className = 'active section';
+                    document.getElementById("second").className = 'section';
+                    document.getElementById("third").className = 'section';
+                    document.getElementById("fourth").className = 'section';
+                    break;
+                }
+                case 2: {
+                    sort = "price";
+                    document.getElementById("first").className = 'section';
+                    document.getElementById("second").className = 'active section';
+                    document.getElementById("third").className = 'section';
+                    document.getElementById("fourth").className = 'section';
+                    break;
+                }
+                case 3: {
+                    sort = "price desc";
+                    document.getElementById("first").className = 'section';
+                    document.getElementById("second").className = 'section';
+                    document.getElementById("third").className = 'active section';
+                    document.getElementById("fourth").className = 'section';
+                    break;
+                }
+                case 4: {
+                    sort = "name";
+                    document.getElementById("first").className = 'section';
+                    document.getElementById("second").className = 'section';
+                    document.getElementById("third").className = 'section';
+                    document.getElementById("fourth").className = 'active section';
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            var jsonPacket = {
+                category: '<%= kind %>',
+                sort: sort,
+                page: page
+            };
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/items/<%= kind %>/list/" + page);
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    ChangeInnerArea(JSON.parse(httpObject.responseText).rows, jsonPacket.category, JSON.parse(httpObject.responseText).result[0].allitems, page, index);
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));
+        }
+
+        function ChangeInnerArea(data, category, count, page, index) { // 서버로부터 수신한 데이터를 처리하는 함수
+            var innerHTML = "";
+
+            innerHTML += '<center>';
+
+            if(data.length == 0)
+                innerHTML += '<b>검색 결과가 없습니다.</b>';
+            else {
+                for (var i = 0; i < data.length; i++) { // 표 만들어서 보여주는 부분
+                    innerHTML += '<div class="ui segment">';
+                    innerHTML += '<a href="/items/' + data[i].num + '">';
+                    innerHTML += '<table border="0" style="table-layout: fixed">';
+                    innerHTML += '<tr>';
+                    innerHTML += '<td rowspan="3"><img width="100px" src="' + data[i].imageURL + '"></td>';
+                    innerHTML += '<td rowspan="3">　</td>';
+                    innerHTML += '<td width="500px"><b>' + data[i].name + '</b></td>';
+                    innerHTML += '<td width="20%" align="right" ><b>' + Number(data[i].price).toLocaleString('en') + '</b>원</td>';
+                    innerHTML += '</tr>';
+                    innerHTML += '<tr>';
+                    innerHTML += '<td></td>';
+                    innerHTML += '<td width="10%" align="right">';
+
+                    if (data[i].freeShipping == 1)
+                        innerHTML += "무료배송"
+                    else
+                        innerHTML += "　"
+
+                    innerHTML += '</td >';
+                    innerHTML += '</tr>';
+                    innerHTML += '<tr>';
+                    innerHTML += '<td>대분류: ' + (data[i].sort).toUpperCase() + '</td>';
+                    innerHTML += '<td width="40%" align="right" >만족도: ' + data[i].rating + '%</td > ';
+                    innerHTML += '</tr>';
+                    innerHTML += '</table>';
+                    innerHTML += '</a>';
+                    innerHTML += '</div>';
+                }
+
+                if(count > 10) {
+                    innerHTML += '<div class="ui segment">';
+                    innerHTML += '<div class="ui pagination menu">';
+
+                    if(page != 1)
+                        innerHTML += '<a class="item" onclick="ChangeToggleAndGetItemData(' + index + ', ' + (page - 1) + ')"><< 이전 10개</a>';
+                    if((page * 10) < count)
+                        innerHTML += '<a class="item" onclick="ChangeToggleAndGetItemData(' + index + ', ' + (page + 1) + ')">다음 10개 >></a>';
+                    
+                    innerHTML += '</div>';
+                    innerHTML += '</div>';
+                }
+            }
+
+            innerHTML += '</center>';
+
+            document.getElementById('innerArea').innerHTML = innerHTML;
+        }
+
+        function ShowLeftMenu() {
+            if(getCookie("id")) {
+                var innerHTML = "";
+
+                innerHTML += '<div class="content">';
+                innerHTML += '<div class="meta">';
+                innerHTML += '방문을 환영합니다!'
+                innerHTML += '</div>';
+                innerHTML += '</div>';
+                innerHTML += '<div class="header">';
+                innerHTML += '<b>' + getCookie("id") + '</b>';
+                innerHTML += '</div>';
+                innerHTML += '<p></p>';
+                innerHTML += '<div class="extra content">';
+                innerHTML += '<button class="fluid ui primary button" onclick="location.href=\'/account/info\'" >회원정보<i class="right floated id card outline icon" ></i></button>';
+                innerHTML += '<button class="fluid ui grey button" onclick="Logout()"; >로그아웃<i class="right floated sign out alternate icon"></i></button>';
+                innerHTML += '<button class="fluid ui green button" onclick="location.href=\'/basket\'" ;>장바구니<i class="right floated shopping basket icon"></i></button>';
+                innerHTML += '</div>';
+
+                document.getElementById("loginArea").innerHTML = innerHTML;
+            }
+        }
+
+        function getCookie(id) { // 페이지의 쿠키 정보를 확인하는 함수
+            var value = document.cookie.match('(^|;) ?' + id + '=([^;]*)(;|$)');
+            return value ? value[2] : null;
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.reload();
+        }
+    </script>
+    <!-- 사용되는 함수 정의 부분 끝 -->
+</body>
+</html>

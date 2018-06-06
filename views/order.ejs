@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+    <script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
+</head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+        <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+            <center>
+                <table border="0">
+                    <tr>
+                        <th>
+                            <div class="ui small image">
+                                <a href="/"><img src="/logo.PNG"></a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="field">
+                                <input type="text" size="50" name="query" id="query" placeholder="Search...">
+                                <input type="hidden" name="page" id="page" value="1" />
+                            </div>
+                        </th>
+                        <th>
+                            <button class="ui button" type="submit">Search</button>
+                        </th>
+                    </tr>
+                </table>
+            </center>
+        </form>
+    </div>
+    <!-- 페이지 머릿글 부분 끝 -->
+
+    <!-- 페이지 내용 -->
+    <div class="ui middle aligned stackable container">
+        <center>
+            <table border="0">
+                <tr>
+                    <!-- 중간 왼쪽 메뉴 시작 -->
+                    <td valign="top" width="20%">
+                        <div class="ui vertical menu">
+                            <a class="item">
+                                <div style="line-height:1.4em" class="ui segment" id="loginArea">
+                                    <form action="/account/login" method="post" class="ui center aligned form" >
+                                        <div class="card">
+                                            <input type="text" name="loginID" id="loginID" placeholder="ID" required >
+                                            <input type="password" name="loginPW" id="loginPW" placeholder="Password" required >
+                                            
+                                            <p></p>
+    
+                                            <div class="extra content">
+                                                <button type="submit" class="fluid ui primary button" >로그인<i class="right floated id card outline icon" ></i></button>
+                                                <button type="button" class="fluid ui secondary button" onclick="location.href='/signup'"; >회원가입<i class="right floated id card icon"></i></button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </a>
+                            <div class="item">
+                                카테고리
+                                <div class="menu">
+                                    <a class="item" href="/items/fruit" >과일(Fruit)</a>
+                                    <a class="item" href="/items/vegetable" >채소(Vegetable)</a>
+                                    <a class="item" href="/items/beverage" >음료(Beverage)</a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <!-- 중간 왼쪽 메뉴 끝 -->
+                    <td valign="top">
+                        <div class="ui segment" id="innerArea">
+                            <% if(rows.length == 0) { %>
+                                <meta http-equiv="refresh" content="0; url=/"></meta>
+                            <% } else {
+                                var total = 0;
+                                var shippingFee = 0;
+                                var index = 0; %>
+
+                                <div class="ui styled fluid accordion">
+                                    <div class="active title" id="title" onclick="OpenAndCloseContent()">
+                                        <i class="dropdown icon"></i>
+                                        상품 상세 정보 확인
+                                    </div>
+                                    <div class="active content" id="content">
+                                    <% for(var i = 0; i < rows.length; i++) { %>
+                                        <div class="ui segment">
+                                            <table border="0">
+                                                <tr>
+                                                    <td rowspan="3"><img width="70px" src="<%= rows[i].imageURL %>"></td>
+                                                    <td rowspan="3">　</td>
+                                                    <td width="500px"><b><%= rows[i].name %></b></td>
+                                                    <td width="20%" align="right"><b><%= Number(rows[i].price).toLocaleString('en') %>원</b></td>
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                    <td width="40%" align="right"><%= rows[i].freeShipping ? "무료배송" : "2,500원" %></td>
+                                                    <% shippingFee += (rows[i].freeShipping ? 0 : 2500) %>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        수량: <%= rows[i].quantity %>
+                                                    </td>
+                                                    <td width="40%" align="right"><a href="/items/<%= rows[i].num %>">상품 정보</a></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <% total += (rows[i].price * rows[i].quantity) %>
+                                    <% } %>
+                                </div>
+                                <div class="ui segment">
+                                    <center>
+                                        <table border="0">
+                                            <tr>
+                                                <td>
+                                                    <h3>
+                                                        상품 합계: <%= Number(total).toLocaleString('en') %>원 + 
+                                                        배송비: <%= Number(shippingFee).toLocaleString('en') %>원 = 
+                                                        <%= Number(shippingFee + total).toLocaleString('en') %>원
+                                                    </h3>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </center>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="ui segment">
+                            <form class="ui form" method="post" action="/order" onsubmit="return Pay()">
+                                <input type="hidden" name="id" value="<%= rows[0].id %>">
+                                <h4 class="ui dividing header">주문 상세 정보</h4>
+                                <div class="fields">
+                                    <div class="seven wide field">
+                                        <label>수령인 성명</label>
+                                        <input type="text" name="name" placeholder="수령인 성명">
+                                    </div>
+                                    <div class="eight wide field">
+                                        <label>전화번호</label>
+                                        <div class="three fields">
+                                            <div class="four wide field">
+                                                <input type="text" onkeydown="CheckNumber(this)" name="phone1" maxlength="4">
+                                            </div>
+                                            <div class="four wide field">
+                                                <input type="text" onkeydown="CheckNumber(this)" name="phone2" maxlength="4">
+                                            </div>
+                                            <div class="four wide field">
+                                                <input type="text" onkeydown="CheckNumber(this)" name="phone3" maxlength="4">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label>수령지 주소</label>
+                                    <div class="fields">
+                                        <div class="three wide field">
+                                            <button type="button" onclick="sample6_execDaumPostcode()" class="ui green button">주소 검색</button>
+                                        </div>
+                                        <div class="eleven wide field">
+                                            <input type="text" name="address1" id="address1" placeholder="주소" readonly>
+                                        </div>
+                                        <div class="four wide field">
+                                            <input type="text" name="address2" id="address2" placeholder="상세 주소">
+                                        </div>
+                                    </div>
+                                </div>
+                                <h4 class="ui dividing header">결제 정보</h4>
+                                <div class="fields">
+                                    <div class="seven wide field">
+                                        <label>신용카드 및 체크카드</label>
+                                        <div class="three fields">
+                                            <div class="four wide field">
+                                                <input type="text" onkeydown="CheckNumber(this)" name="card1" maxlength="4">
+                                            </div>
+                                            <div class="four wide field">
+                                                <input type="text" onkeydown="CheckNumber(this)" name="card2" maxlength="4">
+                                            </div>
+                                            <div class="four wide field">
+                                                <input type="password" onkeydown="CheckNumber(this)" name="card3" maxlength="4">
+                                            </div>
+                                            <div class="four wide field">
+                                                <input type="password" onkeydown="CheckNumber(this)" name="card4" maxlength="4">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="three wide field">
+                                        <label>CVC 번호</label>
+                                        <input type="password" onkeydown="CheckNumber(this)" name="cvc" maxlength="3" placeholder="CVC">
+                                    </div>
+                                    <div class="six wide field">
+                                        <label>유효기간</label>
+                                        <div class="two fields">
+                                            <div class="field">
+                                                <select class="ui fluid search dropdown" id="expireMonth" name="expireMonth">
+                                                    <option value="">월(月) 선택</option>
+                                                    <option value="1">1월</option>
+                                                    <option value="2">2월</option>
+                                                    <option value="3">3월</option>
+                                                    <option value="4">4월</option>
+                                                    <option value="5">5월</option>
+                                                    <option value="6">6월</option>
+                                                    <option value="7">7월</option>
+                                                    <option value="8">8월</option>
+                                                    <option value="9">9월</option>
+                                                    <option value="10">10월</option>
+                                                    <option value="11">11월</option>
+                                                    <option value="12">12월</option>
+                                                </select>
+                                            </div>
+                                            <div class="field">
+                                                <input type="text" onkeydown="CheckNumber(this)" name="expireYear" maxlength="4" placeholder="연도">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="ui primary right labeled icon button">
+                                    <i class="right arrow icon"></i>
+                                    결제 및 주문
+                                </button>
+                            </form>
+                        </div>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+    <!-- 페이지 내용 끝 -->
+
+    <!-- 사용되는 함수 정의 부분 -->
+    <script type="text/javascript">
+        // 코드 실제로 실행되는 부분
+
+        ShowLeftMenu(); // 로그인이 되어 있을 경우 다른 메뉴 부분을 출력하는 함수
+
+        function ShowLeftMenu() {
+            if(getCookie("id")) {
+                var innerHTML = "";
+
+                innerHTML += '<div class="content">';
+                innerHTML += '<div class="meta">';
+                innerHTML += '방문을 환영합니다!'
+                innerHTML += '</div>';
+                innerHTML += '</div>';
+                innerHTML += '<div class="header">';
+                innerHTML += '<b>' + getCookie("id") + '</b>';
+                innerHTML += '</div>';
+                innerHTML += '<p></p>';
+                innerHTML += '<div class="extra content">';
+                innerHTML += '<button class="fluid ui primary button" onclick="location.href=\'/account/info\'" >회원정보<i class="right floated id card outline icon" ></i></button>';
+                innerHTML += '<button class="fluid ui grey button" onclick="Logout()"; >로그아웃<i class="right floated sign out alternate icon"></i></button>';
+                innerHTML += '<button class="fluid ui green button" onclick="location.href=\'/basket\'" ;>장바구니<i class="right floated shopping basket icon"></i></button>';
+                innerHTML += '</div>';
+
+                document.getElementById("loginArea").innerHTML = innerHTML;
+            }
+        }
+
+        function getCookie(id) { // 페이지의 쿠키 정보를 확인하는 함수
+            var value = document.cookie.match('(^|;) ?' + id + '=([^;]*)(;|$)');
+            return value ? value[2] : null;
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.reload();
+        }
+
+        function sample6_execDaumPostcode() { // 다음 주소검색 기능
+            new daum.Postcode({
+                oncomplete: function (data) {
+                    // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+                    // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+                    // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+                    var fullAddr = ''; // 최종 주소 변수
+                    var extraAddr = ''; // 조합형 주소 변수
+
+                    // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+                    if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                        fullAddr = data.roadAddress;
+
+                    } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                        fullAddr = data.jibunAddress;
+                    }
+
+                    // 사용자가 선택한 주소가 도로명 타입일때 조합한다.
+                    if (data.userSelectedType === 'R') {
+                        //법정동명이 있을 경우 추가한다.
+                        if (data.bname !== '') {
+                            extraAddr += data.bname;
+                        }
+                        // 건물명이 있을 경우 추가한다.
+                        if (data.buildingName !== '') {
+                            extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                        }
+                        // 조합형주소의 유무에 따라 양쪽에 괄호를 추가하여 최종 주소를 만든다.
+                        fullAddr += (extraAddr !== '' ? ' (' + extraAddr + ')' : '');
+                    }
+
+                    // 우편번호와 주소 정보를 해당 필드에 넣는다.
+                    document.getElementById('address1').value = fullAddr;
+
+                    // 커서를 상세주소 필드로 이동한다.
+                    document.getElementById('address2').focus();
+                }
+            }).open();
+        }
+
+        function Pay() { // 결제 조건에 부합하는지 확인
+            var dropdownMenu = document.getElementById("expireMonth");
+            var status = false;
+
+            if (document.getElementsByName("name")[0].value == "")
+                alert("이름을 입력하여 주십시오.");
+            else if (document.getElementsByName("phone1")[0].value.length < 3 || document.getElementsByName("phone2")[0].value.length < 3 || document.getElementsByName("phone3")[0].value.length != 4)
+                alert("전체 전화번호를 입력하여 주십시오.");
+            else if (document.getElementsByName("address1")[0].value == "")
+                alert("주소를 입력하여 주십시오.");
+            else if (document.getElementsByName("card1")[0].value.length != 4 || document.getElementsByName("card2")[0].value.length != 4 || document.getElementsByName("card3")[0].value.length != 4 || document.getElementsByName("card4")[0].value.length != 4)
+                alert("카드번호를 입력하여 주십시오.");
+            else if (document.getElementsByName("cvc")[0].value.length != 3)
+                alert("CVC 번호를 입력하여 주십시오.");
+            else if (dropdownMenu.options[dropdownMenu.selectedIndex].value == "")
+                alert("유효기간 월을 입력하여 주십시오.");
+            else if (document.getElementsByName("expireYear")[0].value.length != 4)
+                alert("유효기간 연도를 입력하여 주십시오.");
+            else {
+                status = true;
+            }
+
+            if(!status)
+                return false;
+        }
+
+        function OpenAndCloseContent() {
+            if(document.getElementById("title").className == 'title') {
+                document.getElementById("title").className = 'active title';
+                document.getElementById("content").className = 'active content';
+            }
+            else {
+                document.getElementById("title").className = 'title';
+                document.getElementById("content").className = 'content';
+            }
+        }
+
+        function CheckNumber(obj) {
+            $(obj).keyup(function () {
+                $(this).val($(this).val().replace(/[^0-9]/g, ""));
+            }); 
+        }
+    </script>
+</body>
+</html>
