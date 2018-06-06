@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+</head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+        <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+            <center>
+                <table border="0">
+                    <tr>
+                        <th>
+                            <div class="ui small image">
+                                <a href="/"><img src="/logo.PNG"></a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="field">
+                                <input type="text" size="50" name="query" id="query" placeholder="Search...">
+                                <input type="hidden" name="page" id="page" value="1" />
+                            </div>
+                        </th>
+                        <th>
+                            <button class="ui button" type="submit">Search</button>
+                        </th>
+                    </tr>
+                </table>
+            </center>
+        </form>
+    </div>
+    <!-- 페이지 머릿글 부분 끝 -->
+
+    <!-- 페이지 내용 -->
+    <div class="ui middle aligned stackable container">
+        <center>
+            <table border="0">
+                <tr>
+                    <!-- 중간 왼쪽 메뉴 시작 -->
+                    <td valign="top" width="20%">
+                        <div class="ui vertical menu">
+                            <a class="item">
+                                <div style="line-height:1.4em" class="ui segment" id="loginArea">
+                                    <form action="/account/login" method="post" class="ui center aligned form" >
+                                        <div class="card">
+                                            <input type="text" name="loginID" id="loginID" placeholder="ID" required >
+                                            <input type="password" name="loginPW" id="loginPW" placeholder="Password" required >
+                                            
+                                            <p></p>
+    
+                                            <div class="extra content">
+                                                <button type="submit" class="fluid ui primary button" >로그인<i class="right floated id card outline icon" ></i></button>
+                                                <button type="button" class="fluid ui secondary button" onclick="location.href='/signup'"; >회원가입<i class="right floated id card icon"></i></button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </a>
+                            <div class="item">
+                                회원정보
+                                <div class="menu">
+                                    <a class="item" href="/account/info" >회원정보 변경</a>
+                                    <a class="item" href="/account/password" >비밀번호 변경</a>
+                                    <a class="item" href="/account/withdrawal" >회원탈퇴</a>
+                                </div>
+                            </div>
+                            <a class="item" href="/shipping/1">
+                                주문/배송 조회
+                            </a>
+                            <a class="item" href="/seller">
+                                판매자 메뉴
+                            </a>
+                        </div>
+                    </td>
+                    <!-- 중간 왼쪽 메뉴 끝 -->
+                    <td valign="top">
+                        <table class="ui compact celled definition table">
+                            <thead class="full-width">
+                                <tr>
+                                    <th></th>
+                                    <th>제품명(Name)</th>
+                                    <th>가격(Price)</th>
+                                    <th>분류(Category)</th>
+                                    <th>배송(Shipping)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for(var i = 0; i < rows.length; i++) { %>
+                                    <tr>
+                                        <td class="collapsing">
+                                            <div id="<%= rows[i].num %>" name="check<%= i %>" class="ui checkbox">
+                                                <input name="checkBox" type="checkbox"/><label></label>
+                                            </div>
+                                        </td>
+                                        <td><a href="/items/<%= rows[i].num %>"><%= rows[i].name %></a></td>
+                                        <td><%= Number(rows[i].price).toLocaleString('en') %>원</td>
+                                        <td><%= (rows[i].sort).toUpperCase() %></td>
+                                        <td><%= rows[i].freeShipping ? "무료배송" : "2,500원" %></td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                            <tfoot class="full-width">
+                                <tr>
+                                    <th></th>
+                                    <th colspan="4">
+                                        <div onclick="location.href='/seller/register'" class="ui right floated small primary labeled icon button">
+                                            <i class="arrow alternate circle up icon"></i>상품 등록
+                                        </div>
+                                        <div onclick="CheckAll(<%= rows.length %>, 1)" class="ui small button">전체선택</div>
+                                        <div onclick="CheckAll(<%= rows.length %>, 0)" class="ui small button">전체해제</div>
+                                        <div onclick="DeleteChecked(<%= rows.length %>)" class="ui small button">선택삭제</div> 
+                                    </th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+    <!-- 페이지 내용 끝 -->
+
+    <!-- 사용되는 함수 정의 부분 -->
+    <script type="text/javascript">
+        // 코드 실제로 실행되는 부분
+
+        valid = 0; // 이메일 인증 여부 관련 전역변수
+        serial = 0; // 이메일 인증 번호에 관한 전역 변수
+
+        ShowLeftMenu(); // 로그인이 되어 있을 경우 다른 메뉴 부분을 출력하는 함수
+
+        function ShowLeftMenu() {
+            if(getCookie("id")) {
+                var innerHTML = "";
+
+                innerHTML += '<div class="content">';
+                innerHTML += '<div class="meta">';
+                innerHTML += '방문을 환영합니다!'
+                innerHTML += '</div>';
+                innerHTML += '</div>';
+                innerHTML += '<div class="header">';
+                innerHTML += '<b>' + getCookie("id") + '</b>';
+                innerHTML += '</div>';
+                innerHTML += '<p></p>';
+                innerHTML += '<div class="extra content">';
+                innerHTML += '<button class="fluid ui primary button" onclick="location.href=\'/account/info\'" >회원정보<i class="right floated id card outline icon" ></i></button>';
+                innerHTML += '<button class="fluid ui grey button" onclick="Logout()"; >로그아웃<i class="right floated sign out alternate icon"></i></button>';
+                innerHTML += '<button class="fluid ui green button" onclick="location.href=\'/basket\'" ;>장바구니<i class="right floated shopping basket icon"></i></button>';
+                innerHTML += '</div>';
+
+                document.getElementById("loginArea").innerHTML = innerHTML;
+            }
+        }
+
+        function getCookie(id) { // 페이지의 쿠키 정보를 확인하는 함수
+            var value = document.cookie.match('(^|;) ?' + id + '=([^;]*)(;|$)');
+            return value ? value[2] : null;
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.reload();
+        }
+
+        function CheckAll(amount, index) {
+            if (index == 1) {
+                for (var i = 0; i < amount; i++) 
+                    document.getElementsByName("checkBox")[i].checked = true;
+            }
+            else {
+                for (var i = 0; i < amount; i++)
+                    document.getElementsByName("checkBox")[i].checked = false;
+            }
+        }
+
+        function DeleteChecked(amount) {
+            var count = 0;
+            var sentence = "";
+
+            for (var i = 0; i < amount; i++) {
+                if (document.getElementsByName("checkBox")[i].checked == true) {
+                    sentence += "," + document.getElementsByName("check" + i)[0].id;
+
+                    count++;
+                }
+
+                if((amount - 1) == i)
+                    sentence = sentence.replace(",", "");
+            }
+
+            if(count == 0)
+                return false;
+
+            var jsonPacket = {
+                id: getCookie("id"),
+                num: sentence,
+            };
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/seller");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    alert("전체 " + count + "개의 항목이 삭제되었습니다.");
+                    location.reload();
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));  
+        }
+    </script>
+</body>
+</html>

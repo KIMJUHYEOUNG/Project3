@@ -1,0 +1,929 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+	<title><%= title %></title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous">
+    </script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+    <script type="text/javascript" src="https://semantic-ui.com/dist/semantic.min.js"></script>
+    <script type="text/javascript">
+
+    </script>
+    <style>
+        #main {
+            padding: 1%
+        }
+    </style>
+</head>
+<body>
+    <div id="main"><center>
+        <h2 class="ui icon header">
+            <i class="cogs icon"></i>
+            <div class="content">
+                관리자 페이지
+                <div class="sub header">VEGEFRUIT 관리자 페이지에 오신 것을 환영합니다.</div>
+            </div>
+        </h2>
+        <br />
+        <div style="width:800px;">
+            <div class="ui divider"></div>
+            <div class="ui small statistic">
+                <div class="value">
+                    <div id="allMembers">
+                        <i class="id card outline icon"></i>
+                    </div>
+                </div>
+                <div class="label">
+                    전체 회원수
+                </div>
+            </div>
+            　
+            <div class="ui small statistic">
+                <div class="value">
+                    <div id="allOrders">
+                        <i class="shopping cart icon"></i> 
+                    </div>
+                </div>
+                <div class="label">
+                    전체 주문 횟수
+                </div>
+            </div>
+            　
+            <div class="ui small statistic">
+                <div class="value">
+                    <div id="allItems">
+                        <i class="shopping basket icon"></i>     
+                    </div>
+                </div>
+                <div class="label">
+                    등록된 상품의 개수
+                </div>
+            </div>
+            <div class="ui divider"></div>
+            <div class="ui small statistic">
+                <div class="label">
+                    현재 시각
+                </div>
+                <div class="value">
+                    <div id="currentTime">
+            
+                    </div>
+                </div>
+            </div>
+            <div class="ui divider"></div>
+            <div class="ui secondary menu">
+                <div class="header item">
+                    데이터베이스 통계
+                </div>
+                <a id="byCategory" class="active item" onclick="ChangeToggleAndGetDataFromDB(1)">
+                    분류별 제품 판매 수치
+                </a>
+                <a id="byAmount" class="item" onclick="ChangeToggleAndGetDataFromDB(2)">
+                    가장 높은 판매 제품
+                </a>
+                <a id="byMember" class="item" onclick="ChangeToggleAndGetDataFromDB(3)">
+                    회원 수
+                </a>
+                <div class="right menu">
+                    <a class="ui item" onclick="Logout()">
+                        Logout
+                    </a>
+                </div>
+            </div>
+            <div id="chartArea" class="ui segment">
+                
+            </div>
+            <div class="ui divider"></div>
+            <div class="ui pointing menu">
+                <div class="header item">
+                    데이터베이스 내용 확인
+                </div>
+                <a id="accountDB" class="item" onclick="ChnageToggleAndCheckDataFromDB(1, 1)">
+                    계정
+                </a>
+                <a id="itemsDB" class="item" onclick="ChnageToggleAndCheckDataFromDB(2, 1)">
+                    상품
+                </a>
+                <a id="ordersDB" class="item" onclick="ChnageToggleAndCheckDataFromDB(3, 1)">
+                    주문
+                </a>
+                <a id="validationDB" class="active item" onclick="ChnageToggleAndCheckDataFromDB(4, 1)">
+                    판매자 신청 목록
+                </a>
+                <div class="right menu">
+                    <div class="item">
+                        <div class="ui transparent icon input">
+                            <input type="text" id="searchDB" placeholder="Search...">
+                            <i class="search link icon" onclick="ChnageToggleAndCheckDataFromDB(5, 1)"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="databaseArea" class="ui segment">
+   
+            </div>
+            <div class="ui divider"></div>
+            <div id="gaugeChart" style="width: 650px; height: 240px;"></div>
+        </div>
+    </center></div>
+
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['gauge']});
+
+        arg1 = 0, arg2 = 0;
+        arg3 = 0, arg4 = 0;
+        arg5 = 0, arg6 = 0;
+        arg7 = 0, arg8 = 0;
+        arg9 = 0, arg10 = 0;
+
+        var myVar=setInterval(function(){myTimer()},1000);
+
+        getSummary();
+        ChangeToggleAndGetDataFromDB(1);
+        ChnageToggleAndCheckDataFromDB(1, 1);
+
+        function myTimer()
+        {
+            var d=new Date();
+            var t=d.toLocaleTimeString();
+            document.getElementById("currentTime").innerHTML=t;
+        }
+
+        function getSummary() {
+            var httpObject = new XMLHttpRequest();
+            
+            httpObject.open("POST", "/admin/get/summary");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    google.charts.setOnLoadCallback(drawVisualizationForGauge);
+
+                    var receivedData = JSON.parse(httpObject.responseText).rows;
+                    arg1 = JSON.parse(httpObject.responseText).cpu;
+                    arg2 = JSON.parse(httpObject.responseText).mem;
+                    arg3 = JSON.parse(httpObject.responseText).disk;
+
+                    document.getElementById('allMembers').innerHTML += Number(receivedData[0][0].account).toLocaleString('en');
+                    document.getElementById('allItems').innerHTML += Number(receivedData[1][0].items).toLocaleString('en');
+                    document.getElementById('allOrders').innerHTML += Number(receivedData[2][0].orders).toLocaleString('en');
+                }
+            };
+            httpObject.send(true);
+        }
+
+        function ChangeToggleAndGetDataFromDB(index) {
+            var category = "";
+            
+            switch(index) {
+                case 1: {
+                    category = "CATEGORY";
+                    document.getElementById("byCategory").className = 'active item';
+                    document.getElementById("byAmount").className = 'item';
+                    document.getElementById("byMember").className = 'item';
+                    break;
+                }
+                case 2: {
+                    category = "AMOUNT";
+                    document.getElementById("byCategory").className = 'item';
+                    document.getElementById("byAmount").className = 'active item';
+                    document.getElementById("byMember").className = 'item';
+                    break;
+                }
+                case 3: {
+                    category = "MEMBER";
+                    document.getElementById("byCategory").className = 'item';
+                    document.getElementById("byAmount").className = 'item';
+                    document.getElementById("byMember").className = 'active item';
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            var jsonPacket = {
+                category: category
+            };
+
+            var httpObject = new XMLHttpRequest();
+            
+            httpObject.open("POST", "/admin/get/statistic");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    var innerHTML = "";
+
+                    var receivedData = JSON.parse(httpObject.responseText).rows;
+                    google.charts.load('current', {'packages':['corechart', 'bar']});
+
+                    switch(category) {
+                        case "CATEGORY": {
+                            arg1 = receivedData[0][0].fruit;
+                            arg2 = receivedData[1][0].vegetable;
+                            arg3 = receivedData[2][0].beverage;
+                            google.charts.setOnLoadCallback(drawVisualizationForSelling);
+                            innerHTML = '<div id="sellingChart" style="width:640px; height: 240px;"></div>';
+                            break;
+                        }
+                        case "AMOUNT": {
+                            if(receivedData[0].length == 0) {
+                                arg1 = 0;
+                                arg2 = 0;
+                            }
+                            else {
+                                arg1 = receivedData[0][0].soldAmount;
+                                arg2 = receivedData[0][0].rating;
+                            }
+
+                            if(receivedData[1].length == 0) {
+                                arg3 = 0;
+                                arg4 = 0;
+                            }
+                            else {
+                                arg3 = receivedData[1][0].soldAmount;
+                                arg4 = receivedData[1][0].rating;
+                            }
+
+                            if(receivedData[2].length == 0) {
+                                arg5 = 0;
+                                arg6 = 0;
+                            }
+                            else {
+                                arg5 = receivedData[2][0].soldAmount;
+                                arg6 = receivedData[2][0].rating;
+                            }
+
+                            google.charts.setOnLoadCallback(drawVisualizationForPopular);
+                            innerHTML = '<div id="popularChart" style="width:640px; height: 240px;"></div>';
+                            break;
+                        }
+                        case "MEMBER": {
+                            arg1 = receivedData[0][0].currentMember;
+                            arg2 = receivedData[1][0].newMember;
+                            arg3 = receivedData[2][0].currentMember;
+                            arg4 = receivedData[3][0].newMember;
+                            arg5 = receivedData[4][0].currentMember;
+                            arg6 = receivedData[5][0].newMember;
+                            arg7 = receivedData[6][0].currentMember;
+                            arg8 = receivedData[7][0].newMember;
+                            arg9 = receivedData[8][0].currentMember;
+                            arg10 = receivedData[9][0].newMember;
+                            google.charts.setOnLoadCallback(drawVisualizationForAccount);
+                            innerHTML = '<div id="accountChart" style="width:640px; height: 240px;"></div>';
+                            break;
+                        }
+                    };
+
+                    document.getElementById('chartArea').innerHTML = innerHTML;
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));
+        }
+
+        function ChnageToggleAndCheckDataFromDB(index, page) {
+            var category = "";
+            var arg = "";
+            
+            switch(index) {
+                case 1: {
+                    category = "ACCOUNTDB";
+                    document.getElementById("accountDB").className = 'active item';
+                    document.getElementById("itemsDB").className = 'item';
+                    document.getElementById("ordersDB").className = 'item';
+                    document.getElementById("validationDB").className = 'item';
+                    document.getElementById('searchDB').value = "";
+                    break;
+                }
+                case 2: {
+                    category = "ITEMSDB";
+                    document.getElementById("accountDB").className = 'item';
+                    document.getElementById("itemsDB").className = 'active item';
+                    document.getElementById("ordersDB").className = 'item';
+                    document.getElementById("validationDB").className = 'item';
+                    document.getElementById('searchDB').value = "";
+                    break;
+                }
+                case 3: {
+                    category = "ORDERSDB";
+                    document.getElementById("accountDB").className = 'item';
+                    document.getElementById("itemsDB").className = 'item';
+                    document.getElementById("ordersDB").className = 'active item';
+                    document.getElementById("validationDB").className = 'item';
+                    document.getElementById('searchDB').value = "";
+                    break;
+                }
+                case 4: {
+                    category = "VALIDATIONDB";
+                    document.getElementById("accountDB").className = 'item';
+                    document.getElementById("itemsDB").className = 'item';
+                    document.getElementById("ordersDB").className = 'item';
+                    document.getElementById("validationDB").className = 'active item';
+                    document.getElementById('searchDB').value = "";
+                    break;
+                }
+                case 5: {
+                    if(document.getElementById("accountDB").className == 'active item') category = "ACCOUNTDB";
+                    else if(document.getElementById("itemsDB").className == 'active item') category = "ITEMSDB";
+                    else if(document.getElementById("ordersDB").className == 'active item') category = "ORDERSDB";
+                    else if(document.getElementById("validationDB").className == 'active item') category = "VALIDATIONDB";
+
+                    arg = document.getElementById('searchDB').value;
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            var jsonPacket = {
+                category: category,
+                arg: arg,
+                page: page
+            };
+
+            var httpObject = new XMLHttpRequest();
+            
+            httpObject.open("POST", "/admin/get/database");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    var innerHTML = "";
+
+                    var receivedData = JSON.parse(httpObject.responseText).rows;
+                    var count = JSON.parse(httpObject.responseText).result[0].allitems;
+
+                    switch(category) {
+                        case "ACCOUNTDB": {
+                            innerHTML += '<table class="ui fixed compact table">';
+                            innerHTML += '<thead>';
+                            innerHTML += '<tr><th class="four wide">';
+                            innerHTML += '아이디';
+                            innerHTML += '</th><th class="four wide">';
+                            innerHTML += '이름';
+                            innerHTML += '</td><th class="three wide">';
+                            innerHTML += '세부정보';
+                            innerHTML += '</th><th class="five wide">';
+                            innerHTML += '</th></tr>';
+                            innerHTML += '</thead>';
+
+                            innerHTML += '<tbody>';
+                            for(var i = 0; i < receivedData.length; i++) {
+                                var position = receivedData[i].position;
+                                var stamp = new Date(receivedData[i].stamp);
+
+                                innerHTML += '<input type="hidden" id="id' + i + '" value="' + receivedData[i].id + '">';
+                                innerHTML += '<tr><td rowspan="5">';
+                                innerHTML += receivedData[i].id;
+                                innerHTML += '</td><td rowspan="5">';
+                                innerHTML += receivedData[i].name;
+                                innerHTML += '</td><td>';
+                                innerHTML += '<b>전화번호</b>';
+                                innerHTML += '</td><td>'
+                                innerHTML += (receivedData[i].phone == undefined) ? "" : receivedData[i].phone;
+                                innerHTML += '</td></tr><tr><td>'
+                                innerHTML += '<b>이메일 주소</b>';
+                                innerHTML += '</td><td>';
+                                innerHTML += (receivedData[i].email == undefined) ? "" : receivedData[i].email;
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>등급</b>';
+                                innerHTML += '</td><td>';
+                                innerHTML += (position == 2) ? '관리자(Admin)' : (position == 1) ? "판매자(Seller)" : "일반회원(Normal)";
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>계정 생성일</b>';
+                                innerHTML += '</td><td>';
+                                innerHTML += stamp.getFullYear() + "년 " + (stamp.getMonth() + 1) + "월 " + stamp.getDate() + "일";
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>계정 관리</b>';
+                                innerHTML += '</td><td>';
+                                innerHTML += '<button class="ui secondary button" onclick="deleteClause(\'ACCOUNT\', ' + i + ')">계정 삭제</button>';
+                                innerHTML += '</td></tr>';
+                            }
+
+                            innerHTML += '<tfoot>';
+                            innerHTML += '<tr><th colspan="5">';
+
+                            if(count > 5) {
+                                innerHTML += '<div class="ui right floated pagination menu">';
+
+                                if(page != 1)
+                                    innerHTML += '<a class="item" onclick="ChnageToggleAndCheckDataFromDB(' + index + ', ' + (page - 1) + ')"><< 이전 5개</a>';
+                                if((page * 5) < count)
+                                    innerHTML += '<a class="item" onclick="ChnageToggleAndCheckDataFromDB(' + index + ', ' + (page + 1) + ')">다음 5개 >></a>';
+
+                                innerHTML += '</div>';
+                            }
+
+                            innerHTML += '</th>';
+                            innerHTML += '</tfoot>';
+
+                            innerHTML += '</tbody>'
+                            innerHTML += '</table>';
+                            break;
+                        }
+                        case "ITEMSDB": {
+                            innerHTML = "";
+
+                            innerHTML += '<table class="ui fixed table">';
+                            innerHTML += '<thead>';
+                            innerHTML += '<tr><th>';
+                            innerHTML += '상품 번호';
+                            innerHTML += '</td><th colspan="4">';
+                            innerHTML += '세부정보';
+                            innerHTML += '</th></tr>';
+                            innerHTML += '</thead>';
+
+                            innerHTML += '<tbody>';
+                            for(var i = 0; i < receivedData.length; i++) {
+                                var stamp = new Date(receivedData[i].stamp);
+
+                                innerHTML += '<input type="hidden" id="num' + i + '" value="' + receivedData[i].num + '">';
+                                innerHTML += '<tr><td rowspan="9">';
+                                innerHTML += '<center><a href="/items/' + receivedData[i].num + '">' + receivedData[i].num + '</a></center>';
+                                innerHTML += '</td><td>';
+                                innerHTML += '<b>상품 이름</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += receivedData[i].name;
+                                innerHTML += '</td></tr><tr><td>'
+                                innerHTML += '<b>상품 가격</b>';          
+                                innerHTML += '</td><td colspan="3">';                      
+                                innerHTML += Number(receivedData[i].price).toLocaleString('en');
+                                innerHTML += '</td></tr><tr><td>'
+                                innerHTML += '<b>현재 판매량</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += Number(receivedData[i].soldAmount).toLocaleString('en');
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>남은 수량</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += Number(receivedData[i].currentAmount).toLocaleString('en');
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>분류</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += String(receivedData[i].sort).toUpperCase();
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>판매자</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += receivedData[i].seller;
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>무료배송</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += (receivedData[i].freeShipping == 1) ? '<i class="icon checkmark"></i>' : '<i class="icon close"></i>';
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>상품 등록일</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += stamp.getFullYear() + "년 " + (stamp.getMonth() + 1) + "월 " + stamp.getDate() + "일";
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>상품 관리</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += '<button class="ui secondary button" onclick="deleteClause(\'ITEM\', ' + i + ')">상품 삭제</button>';
+                                innerHTML += '</td></tr>';
+                            }
+
+                            innerHTML += '<tfoot>';
+                            innerHTML += '<tr><th colspan="5">';
+
+                            if(count > 5) {
+                                innerHTML += '<div class="ui right floated pagination menu">';
+
+                                if(page != 1)
+                                    innerHTML += '<a class="item" onclick="ChnageToggleAndCheckDataFromDB(' + index + ', ' + (page - 1) + ')"><< 이전 5개</a>';
+                                if((page * 5) < count)
+                                    innerHTML += '<a class="item" onclick="ChnageToggleAndCheckDataFromDB(' + index + ', ' + (page + 1) + ')">다음 5개 >></a>';
+
+                                innerHTML += '</div>';
+                            }
+
+                            innerHTML += '</th></tr>';
+                            innerHTML += '</tfoot>';
+
+                            innerHTML += '</tbody>'
+                            innerHTML += '</table>';
+                            break;
+                        }
+                        case "ORDERSDB": {
+                            innerHTML = "";
+
+                            innerHTML += '<table class="ui fixed table">';
+                            innerHTML += '<thead>';
+                            innerHTML += '<tr><th>';
+                            innerHTML += '아이디';
+                            innerHTML += '</td><th colspan="4">';
+                            innerHTML += '세부정보';
+                            innerHTML += '</th></tr>';
+                            innerHTML += '</thead>';
+
+                            innerHTML += '<tbody>';
+                            for(var i = 0; i < receivedData.length; i++) {
+                                var stamp = new Date(receivedData[i].stamp);
+
+                                innerHTML += '<input type="hidden" id="id' + i + '" value="' + receivedData[i].id + '">';
+                                innerHTML += '<input type="hidden" id="recipient' + i + '" value="' + receivedData[i].recipient + '">';
+                                innerHTML += '<input type="hidden" id="phone' + i + '" value="' + receivedData[i].phone + '">';
+                                innerHTML += '<input type="hidden" id="address' + i + '" value="' + receivedData[i].address + '">';
+                                innerHTML += '<input type="hidden" id="num' + i + '" value="' + receivedData[i].num + '">';
+                                innerHTML += '<input type="hidden" id="quantity' + i + '" value="' + receivedData[i].quantity + '">';
+                                innerHTML += '<input type="hidden" id="stamp' + i + '" value="' + receivedData[i].stamp + '">';
+                                innerHTML += '<input type="hidden" id="proc' + i + '" value="' + receivedData[i].proc + '">';
+                                innerHTML += '<tr><td rowspan="8">';
+                                innerHTML += receivedData[i].id;
+                                innerHTML += '</td><td>';
+                                innerHTML += '<b>수령인</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += receivedData[i].recipient;
+                                innerHTML += '</td></tr><tr><td>'
+                                innerHTML += '<b>전화번호</b>';          
+                                innerHTML += '</td><td colspan="3">';                      
+                                innerHTML += receivedData[i].phone;
+                                innerHTML += '</td></tr><tr><td>'
+                                innerHTML += '<b>수령지 주소</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += receivedData[i].address;
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>상품 번호</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += '<a href="/items/' + receivedData[i].num + '">' + receivedData[i].num + '</a>';
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>주문 수량</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += Number(receivedData[i].quantity).toLocaleString('en');
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>주문 시각</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += stamp.getFullYear() + "년 " + (stamp.getMonth() + 1) + "월 " + stamp.getDate() + "일 ";
+                                innerHTML += stamp.getHours() + ":" + (stamp.getMinutes() < 10 ? "0" + stamp.getMinutes() : stamp.getMinutes()) + ":" + (stamp.getSeconds() < 10 ? "0" + stamp.getSeconds() : stamp.getSeconds());
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>배송 상태</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += (receivedData[i].proc == 3) ? "상품 수령" : (receivedData[i].proc == 2) ? "배송중" : (receivedData[i].proc == 1) ? "배송 준비중" : "결제 완료"
+                                innerHTML += '</td></tr><tr><td>';
+                                innerHTML += '<b>주문 관리</b>';
+                                innerHTML += '</td><td colspan="3">';
+                                innerHTML += '<button class="ui secondary button" onclick="deleteClause(\'ORDER\', ' + i + ')">주문 삭제</button>';
+                                innerHTML += '</td></tr>';
+                            }
+
+                            innerHTML += '<tfoot>';
+                            innerHTML += '<tr><th colspan="5">';
+
+                            if(count > 5) {
+                                innerHTML += '<div class="ui right floated pagination menu">';
+
+                                if(page != 1)
+                                    innerHTML += '<a class="item" onclick="ChnageToggleAndCheckDataFromDB(' + index + ', ' + (page - 1) + ')"><< 이전 5개</a>';
+                                if((page * 5) < count)
+                                    innerHTML += '<a class="item" onclick="ChnageToggleAndCheckDataFromDB(' + index + ', ' + (page + 1) + ')">다음 5개 >></a>';
+
+                                innerHTML += '</div>';
+                            }
+
+                            innerHTML += '</th></tr>';
+                            innerHTML += '</tfoot>';
+
+                            innerHTML += '</tbody>'
+                            innerHTML += '</table>';
+                            break;
+                        }
+                        case "VALIDATIONDB": {
+                            innerHTML = "";
+
+                            innerHTML += '<table class="ui fixed celled table">';
+                            innerHTML += '<thead class="full-width">';
+                            innerHTML += '<tr><th class="two wide">';
+                            innerHTML += '</th><th class="three wide">';
+                            innerHTML += '아이디'
+                            innerHTML += '</th><th class="three wide">';
+                            innerHTML += '가입 연월일';
+                            innerHTML += '</th><th class="five wide">';
+                            innerHTML += '이메일 주소'
+                            innerHTML += '</th><th>';
+                            innerHTML += '전화번호'
+                            innerHTML += '</th></tr>';
+                            innerHTML += '</thead>';
+
+                            innerHTML += '<tbody>';
+                            for(var i = 0; i < receivedData.length; i++) {
+                                var stamp = new Date(receivedData[i].stamp);
+
+                                innerHTML += '<tr><td class="collapsing">';
+                                innerHTML += '<div id="' + receivedData[i].id + '" name="check' + i + '" class="ui fitted slider checkbox">';
+                                innerHTML += '<input name="checkBox" type="checkbox" id="checkbox' + i + '"> <label></label>';
+                                innerHTML += '</div></td>';
+                                innerHTML += '<td>' + receivedData[i].id + '</td>';
+                                innerHTML += '<td>' + stamp.getFullYear() + "년 " + (stamp.getMonth() + 1) + "월 " + stamp.getDate() + "일 " + '</td>';
+                                innerHTML += '<td>' + receivedData[i].email + '</td>';
+                                innerHTML += '<td>' + receivedData[i].phone + '</td>';
+                                innerHTML += '</tr>';
+                            }
+
+                            innerHTML += '</tbody>';
+
+                            innerHTML += '<tfoot class="full-width">';
+                            innerHTML += '<tr><th colspan="5">';
+
+                            if(count > 5) {
+                                innerHTML += '<div class="ui right floated pagination menu">';
+
+                                if(page != 1)
+                                    innerHTML += '<a class="item" onclick="ChnageToggleAndCheckDataFromDB(' + index + ', ' + (page - 1) + ')"><< 이전 5개</a>';
+                                if((page * 5) < count)
+                                    innerHTML += '<a class="item" onclick="ChnageToggleAndCheckDataFromDB(' + index + ', ' + (page + 1) + ')">다음 5개 >></a>';
+
+                                innerHTML += '</div>';
+                            }
+
+                            innerHTML += '</th></tr>';
+                            innerHTML += '<tr><th colspan="5">';
+                            innerHTML += '<div onclick="UpdateChecked(' + receivedData.length + ')" class="ui right floated small primary labeled icon button">';
+                            innerHTML += '<i class="user icon"></i> 판매자 인증';
+                            innerHTML += '</div><div onclick="CheckAll(' + receivedData.length + ', 1)" class="ui small button">';
+                            innerHTML += '모두 선택';
+                            innerHTML += '</div><div onclick="CheckAll(' + receivedData.length + ', 0)" class="ui small button">';
+                            innerHTML += '모두 해제';
+                            innerHTML += '</div><div onclick="DeleteChecked(' + receivedData.length + ')" class="ui small button">';
+                            innerHTML += '선택 삭제';
+                            innerHTML += '</div></th></tr>';
+
+                            innerHTML += '</tfoot>';
+
+                            innerHTML += '</tbody>'
+                            innerHTML += '</table>';
+                            break;
+                        }
+                    };
+
+                    document.getElementById('databaseArea').innerHTML = innerHTML;
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));
+        }
+
+		function drawVisualizationForSelling() {  
+            var data = google.visualization.arrayToDataTable([
+                ['제품', '판매량', {type: 'string', role: 'annotation'}],
+                ['과일(Fruit)', Number(arg1), String(arg1)],
+                ['채소(Vegetable)', Number(arg2), String(arg2)],
+                ['음료(Beverage)', Number(arg3), String(arg3)]
+            ]);
+
+			var options = {
+                title: '분류별 제품 판매 수치',
+                chartArea: {width: '50%'},
+                annotations: {
+                    alwaysOutside: true,
+                    textStyle: {
+                        fontSize: 12,
+                        auraColor: 'none',
+                        color: '#555'
+                    },
+                    boxStyle: {
+                        stroke: '#ccc',
+                        strokeWidth: 1,
+                        gradient: {
+                        color1: '#f3e5f5',
+                        color2: '#f3e5f5',
+                        x1: '0%', y1: '0%',
+                        x2: '100%', y2: '100%'
+                        }
+                    }
+                },
+                hAxis: {
+                    title: '판매 개수',
+                    minValue: 0
+                },
+                vAxis: { title: ''}
+            };
+			
+			var chart = new google.visualization.BarChart(document.getElementById('sellingChart'));
+			chart.draw(data, options);
+        }
+
+        function drawVisualizationForPopular() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Time of Day');
+            data.addColumn('number', '판매 수치');
+            data.addColumn({type: 'string', role: 'annotation'});
+            data.addColumn('number', '평점 수치');
+            data.addColumn({type: 'string', role: 'annotation'});
+
+            data.addRows([
+                [{v: '과일(Fruit)'}, Number(arg1), String(arg1), Number(arg2), String(arg2)],
+                [{v: '채소(Vegetable)'}, Number(arg3), String(arg3), Number(arg4), String(arg4)],
+                [{v: '음료(Beverage)'}, Number(arg5), String(arg5), Number(arg6), String(arg6)]
+            ]);
+
+            var options = {
+                title: '가장 많이 팔린 제품의 판매 수치 및 평점 수치',
+                annotations: {
+                    alwaysOutside: true,
+                    textStyle: {
+                        fontSize: 14,
+                        color: '#000',
+                        auraColor: 'none'
+                    }
+                }
+            };
+
+            var chart = new google.visualization.ColumnChart(document.getElementById('popularChart'));
+            chart.draw(data, options);
+        }
+
+        function drawVisualizationForAccount() {
+            // Some raw data (not necessarily accurate)
+
+            var date1 = new Date(), date2 = new Date(), date3 = new Date(), date4 = new Date(), date5 = new Date();
+            date1.setHours(0,0,0,0);
+            date2.setHours(0,0,0,0);
+            date3.setHours(0,0,0,0);
+            date4.setHours(0,0,0,0);
+            date5.setHours(0,0,0,0);
+
+            date1.setDate(date1.getDate() - 4);
+            date2.setDate(date2.getDate() - 3);
+            date3.setDate(date3.getDate() - 2);
+            date4.setDate(date4.getDate() - 1);
+            date5.setDate(date5.getDate());
+
+            var data = google.visualization.arrayToDataTable([
+                ['날짜', '전체 회원',  {role: 'annotation'}, '신규 회원',  {role: 'annotation'}],
+                [(date1.getFullYear() + '-' + (date1.getMonth() + 1) + '-' + date1.getDate()),  Number(arg1), String(arg1), Number(arg2), String(arg2)],
+                [(date2.getFullYear() + '-' + (date2.getMonth() + 1) + '-' + date2.getDate()),  Number(arg3), String(arg3), Number(arg4), String(arg4)],
+                [(date3.getFullYear() + '-' + (date3.getMonth() + 1) + '-' + date3.getDate()),  Number(arg5), String(arg5), Number(arg6), String(arg6)],
+                [(date4.getFullYear() + '-' + (date4.getMonth() + 1) + '-' + date4.getDate()),  Number(arg7), String(arg7), Number(arg8), String(arg8)],
+                [(date5.getFullYear() + '-' + (date5.getMonth() + 1) + '-' + date5.getDate()),  Number(arg9), String(arg9), Number(arg10), String(arg10)]
+            ]);
+
+            var options = {
+                title : '5일 간격의 기존 및 신규 회원 현황',
+                vAxis: {title: '전체 회원'},
+                hAxis: {title: '날짜'},
+                seriesType: 'bars'
+            };
+
+            var chart = new google.visualization.ColumnChart(document.getElementById('accountChart'));
+            chart.draw(data, options);
+        }
+
+        function drawVisualizationForGauge() {
+            var data = google.visualization.arrayToDataTable([
+                ['Label', 'Value'],
+                ['메모리', Number(arg2)],
+                ['CPU', Number(arg1)],
+                ['디스크', Number(arg3)]
+            ]);
+
+            var options = {
+                width: 550, height: 270,
+                redFrom: 90, redTo: 100,
+                yellowFrom:75, yellowTo: 90,
+                minorTicks: 10
+            };
+
+            var chart = new google.visualization.Gauge(document.getElementById('gaugeChart'));
+            chart.draw(data, options);
+        }
+
+        function deleteClause(category, index) {
+            var jsonPacket = "";
+
+            switch(category) {
+                case "ACCOUNT": {
+                    jsonPacket = {
+                        database: category,
+                        id: document.getElementById('id' + index).value
+                    };
+                    break;
+                }
+                case "ITEM": {
+                    jsonPacket = {
+                        database: category,
+                        num: document.getElementById('num' + index).value
+                    };
+                    break;
+                }
+                case "ORDER": {
+                    jsonPacket = {
+                        database: category,
+                        id: document.getElementById('id' + index).value,
+                        recipient: document.getElementById('recipient' + index).value,
+                        phone: document.getElementById('phone' + index).value,
+                        address: document.getElementById('address' + index).value,
+                        num: document.getElementById('num' + index).value,
+                        quantity: document.getElementById('quantity' + index).value,
+                        stamp: document.getElementById('stamp' + index).value,
+                        proc: document.getElementById('proc' + index).value,
+                    };
+                    break;
+                }
+            }
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/admin/delete");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    location.reload();
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));  
+        }
+
+        function UpdateChecked(amount) {
+            var count = 0;
+            var sentence = "";
+
+            for (var i = 0; i < amount; i++) {
+                if (document.getElementsByName("checkBox")[i].checked == true) {
+                    sentence += "," + document.getElementsByName("check" + i)[0].id;
+
+                    count++;
+                }
+
+                if((amount - 1) == i)
+                    sentence = sentence.replace(",", "");
+            }
+
+            if(count == 0)
+                return false;
+
+            var jsonPacket = {
+                sentence: sentence
+            };
+
+            if(!confirm("전체 " + count + "개의 계정에 대한 요청을 승인하시겠습니까?"))
+                return false;
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/admin/update");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    alert("전체 " + count + "개의 항목이 업데이트 되었습니다..");
+                    location.reload();
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));            
+        }
+
+        function CheckAll(amount, index) {
+            if (index == 1) {
+                for (var i = 0; i < amount; i++) 
+                    document.getElementsByName("checkBox")[i].checked = true;
+            }
+            else {
+                for (var i = 0; i < amount; i++)
+                    document.getElementsByName("checkBox")[i].checked = false;
+            }
+        }
+
+        function DeleteChecked(amount) {
+            var count = 0;
+            var sentence = "";
+
+            for (var i = 0; i < amount; i++) {
+                if (document.getElementsByName("checkBox")[i].checked == true) {
+                    sentence += "," + document.getElementsByName("check" + i)[0].id;
+
+                    count++;
+                }
+
+                if((amount - 1) == i)
+                    sentence = sentence.replace(",", "");
+            }
+
+            if(count == 0)
+                return false;
+
+            var jsonPacket = {
+                database: "VALIDATIONDB",
+                sentence: sentence
+            };
+
+            if(!confirm("전체 " + count + "개의 계정에 대한 요청을 반려하시겠습니까?"))
+                return false;
+
+            var httpObject = new XMLHttpRequest();
+
+            httpObject.open("POST", "/admin/delete");
+            httpObject.onreadystatechange = function () {
+                if(httpObject.readyState == 4 && httpObject.status == 200) {
+                    alert("전체 " + count + "개의 항목이 삭제되었습니다.");
+                    location.reload();
+                }
+            };
+            httpObject.send(JSON.stringify(jsonPacket));  
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.replace('/');
+        }
+    </script>
+</body>
+</html>
