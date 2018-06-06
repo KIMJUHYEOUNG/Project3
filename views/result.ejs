@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://semantic-ui.com/dist/semantic.css">
+</head>
+<body>
+    <!-- 페이지 머릿글 부분 -->
+    <div style="margin-left: auto;" class="ui center aligned segment">
+        <form action="/result" method="get" accept-charset="utf-8" class="ui center aligned form">
+            <center>
+                <table border="0">
+                    <tr>
+                        <th>
+                            <div class="ui small image">
+                                <a href="/"><img src="/logo.PNG"></a>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="field">
+                                <input type="text" size="50" name="query" id="query" value="<%= query %>" placeholder="Search...">
+                                <input type="hidden" name="page" id="page" value="1" />
+                            </div>
+                        </th>
+                        <th>
+                            <button class="ui button" type="submit">Search</button>
+                        </th>
+                    </tr>
+                </table>
+            </center>
+        </form>
+        </div>
+        <!-- 페이지 머릿글 부분 끝 -->
+    
+        <!-- 페이지 내용 -->
+        <div class="ui middle aligned stackable container">
+        <center>
+            <table border="0">
+                <tr>
+                    <!-- 중간 왼쪽 메뉴 시작 -->
+                    <td valign="top" width="20%">
+                        <div class="ui vertical menu">
+                            <a class="item">
+                                <div style="line-height:1.4em" class="ui segment" id="loginArea">
+                                    <form action="/account/login" method="post" class="ui center aligned form" >
+                                        <div class="card">
+                                            <input type="text" name="loginID" id="loginID" placeholder="ID" required >
+                                            <input type="password" name="loginPW" id="loginPW" placeholder="Password" required >
+                                            
+                                            <p></p>
+    
+                                            <div class="extra content">
+                                                <button type="submit" class="fluid ui primary button" >로그인<i class="right floated id card outline icon" ></i></button>
+                                                <button type="button" class="fluid ui secondary button" onclick="location.href='/signup'"; >회원가입<i class="right floated id card icon"></i></button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </a>
+                            <div class="item">
+                                카테고리
+                                <div class="menu">
+                                    <a class="item" href="/items/fruit" >과일(Fruit)</a>
+                                    <a class="item" href="/items/vegetable" >채소(Vegetable)</a>
+                                    <a class="item" href="/items/beverage" >음료(Beverage)</a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <!-- 중간 왼쪽 메뉴 끝 -->
+                    <td valign="top">
+                        <div class="ui segment">
+                            <center>
+                                <% if(rows.length == 0) { %>
+                                    <b>검색 결과가 없습니다.</b>
+                                <% } else { %>
+                                    <b> 전체 <%= result[0].allitems %>개의 검색 결과가 있습니다.</b>
+                                    <% 
+                                    for(var i = 0; i < rows.length; i++) { %>
+                                        <div class="ui segment">
+                                            <a href="/items/<%= rows[i].num %>">
+                                                <table border="0">
+                                                    <tr>
+                                                        <td rowspan="3"><img width="70px" src="<%= rows[i].imageURL %>"></td>
+                                                        <td rowspan="3">　</td>
+                                                        <td width="500px"><b><%= rows[i].name %></b></td>
+                                                        <td width="20%" align="right"><b><%= Number(rows[i].price).toLocaleString('en') %>원</b></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td></td>
+                                                        <td width="40%" align="right"><%= rows[i].freeShipping ? "무료배송" : "2,500원" %></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>대분류: <%= rows[i].sort.toUpperCase() %></td>
+                                                        <td width="40%" align="right">만족도: <%= rows[i].rating %>%</td>
+                                                    </tr>
+                                                </table>
+                                            </a>
+                                        </div>
+                                    <% } %>
+                                    <div class="ui segment">
+                                        <% if(result[0].allitems > 10) { %>
+                                            <div class="ui pagination menu">
+                                                <% var page = parseInt(pages) %>
+                                                <% if(pages != 1)  { %>
+                                                    <form action="/result" method="get" accept-charset="utf-8">
+                                                        <input type="hidden" name="query" id="query" value="<%= query %>" />
+                                                        <input type="hidden" name="page" id="page" value="<%= page - 1 %>" />
+                                                        <button type="submit" class="item"><< 이전 10개</button>
+                                                    </form>
+                                                <% } %>
+                                                <% if((pages * 10) < result[0].allitems) { %>
+                                                    <form action="/result" method="get" accept-charset="utf-8">
+                                                        <input type="hidden" name="query" id="query" value="<%= query %>" />
+                                                        <input type="hidden" name="page" id="page" value="<%= page + 1 %>" />
+                                                        <button type="submit" class="item">다음 10개 >></button>
+                                                    </form>
+                                                <% } %>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            </center>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+    <!-- 페이지 내용 끝 -->
+
+    <script type="text/javascript">
+        ShowLeftMenu(); // 로그인이 되어 있을 경우 다른 메뉴 부분을 출력하는 함수
+
+        function ShowLeftMenu() {
+            if(getCookie("id")) {
+                var innerHTML = "";
+
+                innerHTML += '<div class="content">';
+                innerHTML += '<div class="meta">';
+                innerHTML += '방문을 환영합니다!'
+                innerHTML += '</div>';
+                innerHTML += '</div>';
+                innerHTML += '<div class="header">';
+                innerHTML += '<b>' + getCookie("id") + '</b>';
+                innerHTML += '</div>';
+                innerHTML += '<p></p>';
+                innerHTML += '<div class="extra content">';
+                innerHTML += '<button class="fluid ui primary button" onclick="location.href=\'/account/info\'" >회원정보<i class="right floated id card outline icon" ></i></button>';
+                innerHTML += '<button class="fluid ui grey button" onclick="Logout()"; >로그아웃<i class="right floated sign out alternate icon"></i></button>';
+                innerHTML += '<button class="fluid ui green button" onclick="location.href=\'/basket\'" ;>장바구니<i class="right floated shopping basket icon"></i></button>';
+                innerHTML += '</div>';
+
+                document.getElementById("loginArea").innerHTML = innerHTML;
+            }
+        }
+
+        function getCookie(id) { // 페이지의 쿠키 정보를 확인하는 함수
+            var value = document.cookie.match('(^|;) ?' + id + '=([^;]*)(;|$)');
+            return value ? value[2] : null;
+        }
+
+        function deleteCookie(id) { // 페이지의 쿠키를 삭제하는 함수
+            document.cookie = id + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;' + '; path=/';
+        }
+
+        function Logout() { // 로그아웃 하는 함수
+            deleteCookie("id");
+
+            alert("정상적으로 로그아웃 되었습니다.");
+
+            location.reload();
+        }
+    </script>
+</body>
+</html>
